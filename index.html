@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Circular Economy Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+</head>
+<body class="bg-gray-50">
+    <nav class="bg-green-800 p-4 text-white font-bold text-center">
+        MEDICAL WASTE VERIFIED MARKETPLACE - BANGLADESH
+    </nav>
+
+    <div class="p-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- ROI & COSTING MATH -->
+        <div class="bg-white p-6 rounded shadow border-t-4 border-green-500">
+            <h3 class="font-bold text-gray-500 uppercase text-xs">Live Costing (Monthly Revenue)</h3>
+            <p id="totalRevenue" class="text-3xl font-bold text-green-600">0 BDT</p>
+            <p class="text-sm text-gray-400 mt-2">Calculated from verified recyclables</p>
+        </div>
+
+        <div class="bg-white p-6 rounded shadow border-t-4 border-blue-500">
+            <h3 class="font-bold text-gray-500 uppercase text-xs">ROI (Estimated)</h3>
+            <p id="roi" class="text-3xl font-bold text-blue-600">0%</p>
+            <p class="text-sm text-gray-400 mt-2">Based on system costs vs recovery</p>
+        </div>
+
+        <!-- SIMPLE HEATMAP -->
+        <div class="bg-white p-6 rounded shadow border-t-4 border-red-500">
+            <h3 class="font-bold text-gray-500 uppercase text-xs">Waste Intensity Heatmap</h3>
+            <div id="heatmap" class="flex gap-2 mt-4 text-center text-xs font-bold text-white">
+                <div id="heat-ICU" class="bg-gray-300 flex-1 py-2 rounded">ICU</div>
+                <div id="heat-Emergency" class="bg-gray-300 flex-1 py-2 rounded">EMRG</div>
+                <div id="heat-General" class="bg-gray-300 flex-1 py-2 rounded">WARD</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CENTRALIZED LEDGER -->
+    <div class="px-8 mb-10">
+        <div class="bg-white rounded shadow p-6">
+            <h3 class="font-bold mb-4">Centralized Audit Ledger (Verification Loop)</h3>
+            <table class="w-full text-left text-sm border-collapse">
+                <thead>
+                    <tr class="bg-gray-100 uppercase text-gray-600">
+                        <th class="p-3 border">Timestamp</th>
+                        <th class="p-3 border">Ward</th>
+                        <th class="p-3 border">Item</th>
+                        <th class="p-3 border">Type</th>
+                        <th class="p-3 border">Market Value</th>
+                    </tr>
+                </thead>
+                <tbody id="ledgerBody">
+                    <!-- Data will inject here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // USE THE SAME FIREBASE CONFIG
+        const firebaseConfig = {
+    apiKey: "AIzaSyDL0488_Y22MMpiaz0xKAEweLdaOacrA1o",
+    authDomain: "medical-waste-circular-economy.firebaseapp.com",
+    projectId: "medical-waste-circular-economy",
+    storageBucket: "medical-waste-circular-economy.firebasestorage.app",
+    messagingSenderId: "180545712948",
+    appId: "1:180545712948:web:3e93c730afcf6306c7eb61",
+    measurementId: "G-G49S8FGXDV"
+  };
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        let totalRevenue = 0;
+        let wardCounts = { ICU: 0, Emergency: 0, General: 0 };
+
+        database.ref('wasteLogs').on('child_added', (snapshot) => {
+            const data = snapshot.val();
+            
+            // 1. Update Ledger
+            const row = `<tr>
+                <td class="p-3 border">${new Date(data.timestamp).toLocaleTimeString()}</td>
+                <td class="p-3 border font-bold">${data.ward}</td>
+                <td class="p-3 border">${data.item}</td>
+                <td class="p-3 border text-green-600 font-bold">${data.category}</td>
+                <td class="p-3 border font-bold">${data.value} BDT</td>
+            </tr>`;
+            document.getElementById('ledgerBody').innerHTML = row + document.getElementById('ledgerBody').innerHTML;
+
+            // 2. Update Costing Math
+            totalRevenue += data.value;
+            document.getElementById('totalRevenue').innerText = totalRevenue + " BDT";
+            
+            // Simple ROI logic: (Revenue / Estimated Op Cost of 500 BDT) * 100
+            let roiCalc = ((totalRevenue / 500) * 100).toFixed(1);
+            document.getElementById('roi').innerText = roiCalc + "%";
+
+            // 3. Update Heatmap Intensity
+            wardCounts[data.ward]++;
+            updateHeatmap();
+        });
+
+        function updateHeatmap() {
+            Object.keys(wardCounts).forEach(ward => {
+                const count = wardCounts[ward];
+                const div = document.getElementById('heat-' + ward);
+                if (count > 5) div.style.backgroundColor = '#ef4444'; // Red
+                else if (count > 2) div.style.backgroundColor = '#f97316'; // Orange
+                else if (count > 0) div.style.backgroundColor = '#22c55e'; // Green
+            });
+        }
+    </script>
+</body>
+</html>
