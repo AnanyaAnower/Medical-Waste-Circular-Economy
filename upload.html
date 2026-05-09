@@ -9,65 +9,6 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 </head>
 <body class="bg-gray-100 p-5">
-    <div class="max-w-md mx-auto bg-white p-6 rounded-xl shadow-md">
-        <h2 class="text-xl font-bold mb-4">Scan Medical Waste</h2>
-        
-        <!-- Simulation: Item Selection -->
-        <label class="block mb-2">Select Ward</label>
-        <select id="ward" class="w-full border p-2 mb-4 rounded">
-            <option value="ICU">ICU</option>
-            <option value="Emergency">Emergency</option>
-            <option value="General">General Ward</option>
-        </select>
-
-        <label class="block mb-2">Waste Item (Detected by AI)</label>
-        <select id="itemType" class="w-full border p-2 mb-4 rounded">
-            <option value="Saline Bag" data-type="Recyclable" data-price="45">Saline Bag (Plastic)</option>
-            <option value="Medicine Bottle" data-type="Recyclable" data-price="30">Medicine Bottle (Glass)</option>
-            <option value="Used Syringe" data-type="Hazardous" data-price="0">Used Syringe (Hazardous)</option>
-        </select>
-
-        <button onclick="uploadData()" class="w-full bg-green-600 text-white font-bold py-3 rounded-lg hover:bg-green-700">
-            Verify & Log to Ledger
-        </button>
-        <p id="status" class="mt-4 text-sm text-center text-gray-600"></p>
-    </div>
-
-    <script>
-        // REPLACE WITH YOUR FIREBASE CONFIG
-        const firebaseConfig = {
-    apiKey: "AIzaSy...",
-    authDomain: "medical-waste-circular-economy.firebaseapp.com",
-    databaseURL: "https://medical-waste-circular-economy-default-rtdb.firebaseio.com/",
-    projectId: "medical-waste-circular-economy",
-    storageBucket: "medical-waste-circular-economy.firebasestorage.app",
-    messagingSenderId: "180545712948",
-    appId: "1:180545712948:web:3e93c730afcf6306c7eb61",
-    measurementId: "G-G49S8FGXDV"
-}; // <--- Ensure this bracket is closed
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-
-        function uploadData() {
-            const ward = document.getElementById('ward').value;
-            const itemSelect = document.getElementById('itemType');
-            const itemName = itemSelect.value;
-            const type = itemSelect.options[itemSelect.selectedIndex].getAttribute('data-type');
-            const price = itemSelect.options[itemSelect.selectedIndex].getAttribute('data-price');
-
-            const entry = {
-                ward: ward,
-                item: itemName,
-                category: type,
-                value: parseFloat(price),
-                timestamp: Date.now()
-            };
-
-            database.ref('wasteLogs').push(entry).then(() => {
-                document.getElementById('status').innerText = "Data Synced to Central Ledger!";
-                setTimeout(() => { document.getElementById('status').innerText = ""; }, 3000);
-            });
-        }
     </script>
 </body>
 </html>
