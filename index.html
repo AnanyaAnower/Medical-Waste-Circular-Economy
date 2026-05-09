@@ -1,115 +1,143 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Circular Economy Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Management Dashboard - Circular Economy Ledger</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <style>
+        body { background-color: #f8f9fa; font-family: 'Segoe UI', sans-serif; }
+        .stat-card { border-radius: 12px; border: none; transition: 0.3s; }
+        .stat-card:hover { transform: translateY(-5px); }
+        .table-container { background: white; border-radius: 15px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .badge-verified { background-color: #d4edda; color: #155724; }
+    </style>
 </head>
-<body class="bg-gray-50">
-    <nav class="bg-green-800 p-4 text-white font-bold text-center">
-        MEDICAL WASTE VERIFIED MARKETPLACE - BANGLADESH
-    </nav>
+<body>
 
-    <div class="p-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-        <!-- ROI & COSTING MATH -->
-        <div class="bg-white p-6 rounded shadow border-t-4 border-green-500">
-            <h3 class="font-bold text-gray-500 uppercase text-xs">Live Costing (Monthly Revenue)</h3>
-            <p id="totalRevenue" class="text-3xl font-bold text-green-600">0 BDT</p>
-            <p class="text-sm text-gray-400 mt-2">Calculated from verified recyclables</p>
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 px-3">
+        <h2>Waste Management Ledger <small class="text-muted" style="font-size: 0.5em;">Live Tracking</small></h2>
+        <span class="badge bg-primary">ROI Calculation: Active</span>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card stat-card p-3 bg-white shadow-sm">
+                <h6 class="text-muted">Total Resource Revenue</h6>
+                <h3 id="totalRevenue">0.00 BDT</h3>
+            </div>
         </div>
-
-        <div class="bg-white p-6 rounded shadow border-t-4 border-blue-500">
-            <h3 class="font-bold text-gray-500 uppercase text-xs">ROI (Estimated)</h3>
-            <p id="roi" class="text-3xl font-bold text-blue-600">0%</p>
-            <p class="text-sm text-gray-400 mt-2">Based on system costs vs recovery</p>
+        <div class="col-md-3">
+            <div class="card stat-card p-3 bg-white shadow-sm">
+                <h6 class="text-muted">Disposal Costs Saved</h6>
+                <h3 id="totalSavings">0.00 BDT</h3>
+            </div>
         </div>
-
-        <!-- SIMPLE HEATMAP -->
-        <div class="bg-white p-6 rounded shadow border-t-4 border-red-500">
-            <h3 class="font-bold text-gray-500 uppercase text-xs">Waste Intensity Heatmap</h3>
-            <div id="heatmap" class="flex gap-2 mt-4 text-center text-xs font-bold text-white">
-                <div id="heat-ICU" class="bg-gray-300 flex-1 py-2 rounded">ICU</div>
-                <div id="heat-Emergency" class="bg-gray-300 flex-1 py-2 rounded">EMRG</div>
-                <div id="heat-General" class="bg-gray-300 flex-1 py-2 rounded">WARD</div>
+        <div class="col-md-3">
+            <div class="card stat-card p-3 bg-white shadow-sm border-start border-success border-4">
+                <h6 class="text-muted">Net ROI</h6>
+                <h3 id="roiValue">0%</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card p-3 bg-dark text-white shadow-sm">
+                <h6 class="text-light">Current Ledger Entries</h6>
+                <h3 id="entryCount">0</h3>
             </div>
         </div>
     </div>
 
-    <!-- CENTRALIZED LEDGER -->
-    <div class="px-8 mb-10">
-        <div class="bg-white rounded shadow p-6">
-            <h3 class="font-bold mb-4">Centralized Audit Ledger (Verification Loop)</h3>
-            <table class="w-full text-left text-sm border-collapse">
-                <thead>
-                    <tr class="bg-gray-100 uppercase text-gray-600">
-                        <th class="p-3 border">Timestamp</th>
-                        <th class="p-3 border">Ward</th>
-                        <th class="p-3 border">Item</th>
-                        <th class="p-3 border">Type</th>
-                        <th class="p-3 border">Market Value</th>
-                    </tr>
-                </thead>
-                <tbody id="ledgerBody">
-                    <!-- Data will inject here -->
+    <div class="table-container shadow-sm mx-2">
+        <h5 class="mb-3">Verified Circular Economy Assets</h5>
+        <table class="table table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Hospital</th>
+                    <th>Department</th>
+                    <th>Logged By</th>
+                    <th>Waste Item</th>
+                    <th>Est. Value</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="ledgerBody">
                 </tbody>
-            </table>
-        </div>
+        </table>
     </div>
+</div>
 
-    <script>
-        // USE THE SAME FIREBASE CONFIG
-        const firebaseConfig = {
-    apiKey: "AIzaSy...",
-    authDomain: "medical-waste-circular-economy.firebaseapp.com",
-    databaseURL: "https://medical-waste-circular-economy-default-rtdb.firebaseio.com/",
-    projectId: "medical-waste-circular-economy",
-    storageBucket: "medical-waste-circular-economy.firebasestorage.app",
-    messagingSenderId: "180545712948",
-    appId: "1:180545712948:web:3e93c730afcf6306c7eb61",
-    measurementId: "G-G49S8FGXDV"
-}; // <--- Ensure this bracket is closed
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
+<script>
+    // --- USE YOUR FIREBASE CONFIG FROM PREVIOUS STEP ---
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "medical-waste-circular-economy.firebaseapp.com",
+        databaseURL: "https://medical-waste-circular-economy-default-rtdb.firebaseio.com/",
+        projectId: "medical-waste-circular-economy",
+        storageBucket: "medical-waste-circular-economy.firebasestorage.app",
+        messagingSenderId: "180545712948",
+        appId: "1:180545712948:web:3e93c730afcf6306c7eb61",
+        measurementId: "G-G49S8FGXDV"
+    };
 
-        let totalRevenue = 0;
-        let wardCounts = { ICU: 0, Emergency: 0, General: 0 };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database().ref('wasteLogs');
 
-        database.ref('wasteLogs').on('child_added', (snapshot) => {
-            const data = snapshot.val();
-            
-            // 1. Update Ledger
+    // Market Rates for Dhaka (BDT)
+    const itemRates = {
+        "Saline Bag": 45, // BDT per kg
+        "Syringe": 35,
+        "Dialysis Kit": 50,
+        "IV Set": 40
+    };
+
+    const incinerationCost = 25; // Cost saved per unit of weight
+
+    db.on('value', (snapshot) => {
+        const data = snapshot.val();
+        const tableBody = document.getElementById('ledgerBody');
+        tableBody.innerHTML = ''; 
+
+        let revenue = 0;
+        let savings = 0;
+        let count = 0;
+
+        for (let id in data) {
+            const entry = data[id];
+            count++;
+
+            // Simple Logic: Assume each item is approx 0.1kg for demo purposes
+            const itemValue = (itemRates[entry.item] || 0) * 0.1;
+            const itemSaving = incinerationCost * 0.1;
+
+            revenue += itemValue;
+            savings += itemSaving;
+
             const row = `<tr>
-                <td class="p-3 border">${new Date(data.timestamp).toLocaleTimeString()}</td>
-                <td class="p-3 border font-bold">${data.ward}</td>
-                <td class="p-3 border">${data.item}</td>
-                <td class="p-3 border text-green-600 font-bold">${data.category}</td>
-                <td class="p-3 border font-bold">${data.value} BDT</td>
+                <td>${entry.timestamp || 'N/A'}</td>
+                <td><strong>${entry.hospital || 'Default Hospital'}</strong></td>
+                <td>${entry.ward}</td>
+                <td>${entry.staff || 'System Log'}</td>
+                <td>${entry.item}</td>
+                <td class="text-success">+${itemValue.toFixed(2)} BDT</td>
+                <td><span class="badge badge-verified">Verified</span></td>
             </tr>`;
-            document.getElementById('ledgerBody').innerHTML = row + document.getElementById('ledgerBody').innerHTML;
-
-            // 2. Update Costing Math
-            totalRevenue += data.value;
-            document.getElementById('totalRevenue').innerText = totalRevenue + " BDT";
-            
-            // Simple ROI logic: (Revenue / Estimated Op Cost of 500 BDT) * 100
-            let roiCalc = ((totalRevenue / 500) * 100).toFixed(1);
-            document.getElementById('roi').innerText = roiCalc + "%";
-
-            // 3. Update Heatmap Intensity
-            wardCounts[data.ward]++;
-            updateHeatmap();
-        });
-
-        function updateHeatmap() {
-            Object.keys(wardCounts).forEach(ward => {
-                const count = wardCounts[ward];
-                const div = document.getElementById('heat-' + ward);
-                if (count > 5) div.style.backgroundColor = '#ef4444'; // Red
-                else if (count > 2) div.style.backgroundColor = '#f97316'; // Orange
-                else if (count > 0) div.style.backgroundColor = '#22c55e'; // Green
-            });
+            tableBody.insertAdjacentHTML('afterbegin', row);
         }
-    </script>
+
+        // Calculate ROI: (Gain - Cost) / Cost
+        const totalInvestment = count * 2; // Simulated operational cost of 2 BDT per entry
+        const netROI = totalInvestment > 0 ? ((revenue + savings - totalInvestment) / totalInvestment * 100) : 0;
+
+        document.getElementById('totalRevenue').innerText = revenue.toFixed(2) + " BDT";
+        document.getElementById('totalSavings').innerText = savings.toFixed(2) + " BDT";
+        document.getElementById('entryCount').innerText = count;
+        document.getElementById('roiValue').innerText = netROI.toFixed(1) + "%";
+    });
+</script>
+
 </body>
 </html>
