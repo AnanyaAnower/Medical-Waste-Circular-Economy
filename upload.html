@@ -3,137 +3,202 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Waste Logging - Circular Economy Ledger</title>
+    <title>Handy - AI Medical Waste Audit</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
         body { background-color: #f4f7f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .card { border-radius: 15px; border: none; }
-        .btn-success { background-color: #28a745; border: none; border-radius: 8px; }
-        .btn-success:hover { background-color: #218838; }
-        .form-label { font-weight: 600; color: #444; }
+        .scanner-card { border-radius: 15px; overflow: hidden; border: none; }
+        #webcam-container canvas { width: 100% !important; height: auto !important; border-radius: 10px; }
+        .status-badge { font-size: 1.2rem; font-weight: bold; transition: all 0.3s ease; }
+        .reward-box { background: #e8f5e9; border-radius: 10px; padding: 15px; border: 1px solid #c8e6c9; }
     </style>
 </head>
-<body>
+<body class="p-3 p-md-5">
 
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6 col-lg-5">
-            <div class="card p-4 shadow">
-                <h3 class="mb-4 text-center">Medical Waste Entry</h3>
-                
-                <div class="mb-3">
-                    <label class="form-label">Hospital/Institution Name</label>
-                    <input type="text" id="hospitalName" class="form-control" placeholder="e.g. Dhaka Medical College">
-                </div>
+<div class="container" style="max-width: 600px;">
+    <div class="text-center mb-4">
+        <h2 class="fw-bold text-primary">Handy Audit System</h2>
+        <p class="text-muted">Smart Medical Waste Segregation & Rewards</p>
+    </div>
 
-                <div class="mb-3">
-                    <label class="form-label">Logged By (Staff Name)</label>
-                    <input type="text" id="staffName" class="form-control" placeholder="Enter your name">
-                </div>
+    <div id="step-1" class="card p-4 shadow-sm scanner-card mb-4">
+        <h5 class="mb-3">Staff Identification</h5>
+        <div class="mb-3">
+            <input type="text" id="staffName" class="form-control form-control-lg" placeholder="Enter Staff Name">
+        </div>
+        <div class="mb-3">
+            <select id="ward" class="form-select form-select-lg">
+                <option value="" selected disabled>Select Ward</option>
+                <option value="ICU">ICU</option>
+                <option value="Emergency">Emergency</option>
+                <option value="Radiology">Radiology</option>
+                <option value="General Ward">General Ward</option>
+            </select>
+        </div>
+        <button class="btn btn-primary btn-lg w-100" onclick="startScanner()">Open AI Scanner</button>
+    </div>
 
-                <hr>
+    <div id="step-2" class="d-none">
+        <div class="card shadow-sm scanner-card mb-3">
+            <div id="webcam-container"></div>
+            <div id="label-container" class="status-badge text-center p-3 bg-white">
+                Initializing AI...
+            </div>
+        </div>
+        
+        <button id="nextBtn" class="btn btn-success btn-lg w-100 shadow d-none" onclick="goToReward()">
+            Calculate Reward BDT →
+        </button>
+    </div>
 
-                <div class="mb-3">
-                    <label class="form-label">Select Ward/Department</label>
-                    <select id="wardSelect" class="form-select">
-                        <option value="Emergency">Emergency</option>
-                        <option value="ICU">ICU</option>
-                        <option value="Radiology">Radiology</option>
-                        <option value="Operation Theater">Operation Theater</option>
-                        <option value="General Ward">General Ward</option>
-                    </select>
-                </div>
+    <div id="step-3" class="d-none">
+        <div class="card p-4 shadow-sm scanner-card">
+            <h5 class="text-success mb-3">Reward Calculation</h5>
+            
+            <div class="mb-3">
+                <label class="form-label small fw-bold">Confirmed Waste Type</label>
+                <select id="finalItem" class="form-select" onchange="calculate()">
+                    <option value="Saline Bag">Saline Bag (Plastic)</option>
+                    <option value="IV Tube">IV Tube (Plastic)</option>
+                    <option value="Plastic Bottle">Plastic Bottle</option>
+                    <option value="Syringe Housing">Syringe Housing (Non-Sharps)</option>
+                </select>
+            </div>
 
-                <div class="mb-3">
-                    <label class="form-label">Waste Item (Detected by AI)</label>
-                    <select id="itemSelect" class="form-select">
-                        <option value="Saline Bag">Saline Bag (Plastic)</option>
-                        <option value="Syringe">Syringe (PP Plastic)</option>
-                        <option value="Dialysis Kit">Dialysis Kit (Mixed)</option>
-                        <option value="IV Set">IV Set (Tubing)</option>
-                    </select>
-                </div>
+            <div class="mb-3">
+                <label class="form-label small fw-bold">Quantity (Pieces)</label>
+                <input type="number" id="quantity" class="form-control" value="1" min="1" oninput="calculate()">
+            </div>
 
-                <button onclick="logToLedger()" class="btn btn-success w-100 py-2 fw-bold">Verify & Log to Ledger</button>
-                
-                <div id="statusMsg" class="mt-3 text-center text-success fw-bold" style="display:none;">
-                    Data Synced to Central Ledger!
+            <div class="reward-box text-center mb-4">
+                <div class="row">
+                    <div class="col-6">
+                        <small class="text-muted">Market Value</small>
+                        <h4 class="text-success mb-0">৳ <span id="valRevenue">0</span></h4>
+                    </div>
+                    <div class="col-6 border-start">
+                        <small class="text-muted">Staff Reward</small>
+                        <h4 class="text-primary mb-0">৳ <span id="valReward">0</span></h4>
+                    </div>
                 </div>
             </div>
-            
-            <p class="mt-4 text-center text-muted small">
-                © 2026 Ananya Anower - BUET Thesis Project<br>
-                Centralized Ledger for Dhaka Medical Waste
-            </p>
+
+            <button class="btn btn-success btn-lg w-100" onclick="submitLog()">Log to Firebase Ledger</button>
+            <button class="btn btn-link btn-sm w-100 mt-2 text-muted" onclick="location.reload()">Cancel & Restart</button>
         </div>
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+
 <script>
-    // --- REPLACE THIS SECTION WITH YOUR ACTUAL FIREBASE CONFIG ---
-    const firebaseConfig = {
-        apiKey: "YOUR_API_KEY",
-        authDomain: "medical-waste-circular-economy.firebaseapp.com",
-        databaseURL: "https://medical-waste-circular-economy-default-rtdb.firebaseio.com/",
-        projectId: "medical-waste-circular-economy",
-        storageBucket: "medical-waste-circular-economy.firebasestorage.app",
-        messagingSenderId: "180545712948",
-        appId: "1:180545712948:web:3e93c730afcf6306c7eb61",
-        measurementId: "G-G49S8FGXDV"
+    // YOUR EXPORTED MODEL LINK
+    const MODEL_URL = "https://teachablemachine.withgoogle.com/models/f3f-Bo6n1/";
+
+    let model, webcam, labelContainer, maxPredictions;
+
+    // Item Rates for Reward Logic
+    const wasteRates = {
+        "Saline Bag": { market: 5.50, rewardPct: 0.20 },
+        "IV Tube": { market: 3.00, rewardPct: 0.15 },
+        "Plastic Bottle": { market: 2.50, rewardPct: 0.10 },
+        "Syringe Housing": { market: 1.50, rewardPct: 0.10 }
     };
-    // -------------------------------------------------------------
 
-    // Initialize Firebase
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-    }
-
-    function logToLedger() {
-        const hospital = document.getElementById('hospitalName').value;
+    async function startScanner() {
         const staff = document.getElementById('staffName').value;
-        const ward = document.getElementById('wardSelect').value;
-        const item = document.getElementById('itemSelect').value;
-        
-        // Automated Timestamping
-        const now = new Date();
-        const timestamp = now.toLocaleString(); // Captures local date and time
+        const ward = document.getElementById('ward').value;
 
-        // Basic validation
-        if(hospital.trim() === "" || staff.trim() === "") {
-            alert("Please provide Hospital and Staff names to ensure data traceability.");
+        if(!staff || !ward) {
+            alert("Please enter Staff Name and select a Ward first.");
             return;
         }
 
-        const logEntry = {
-            hospital: hospital,
-            staff: staff,
-            ward: ward,
-            item: item,
-            timestamp: timestamp,
-            status: "Verified",
-            region: "Dhaka" // Context for your thesis
-        };
+        document.getElementById('step-1').classList.add('d-none');
+        document.getElementById('step-2').classList.remove('d-none');
 
-        // Push to Realtime Database
-        firebase.database().ref('wasteLogs').push(logEntry)
-        .then(() => {
-            // Visual feedback
-            const status = document.getElementById('statusMsg');
-            status.style.display = 'block';
-            
-            // Clear name fields after successful entry if needed
-            // document.getElementById('staffName').value = ""; 
+        // Load model
+        model = await tmImage.load(MODEL_URL + "model.json", MODEL_URL + "metadata.json");
+        maxPredictions = model.getTotalClasses();
 
-            setTimeout(() => { 
-                status.style.display = 'none'; 
-            }, 3000);
-        })
-        .catch((error) => {
-            console.error("Sync Error: ", error);
-            alert("Sync failed. Check internet connection.");
-        });
+        // Setup Webcam
+        const flip = true; 
+        webcam = new tmImage.Webcam(400, 400, flip);
+        await webcam.setup();
+        await webcam.play();
+        window.requestAnimationFrame(loop);
+
+        document.getElementById("webcam-container").appendChild(webcam.canvas);
+        labelContainer = document.getElementById("label-container");
+    }
+
+    async function loop() {
+        webcam.update();
+        await predict();
+        window.requestAnimationFrame(loop);
+    }
+
+    async function predict() {
+        const prediction = await model.predict(webcam.canvas);
+        let topClass = "";
+        let topProb = 0;
+
+        for (let i = 0; i < maxPredictions; i++) {
+            if(prediction[i].probability > topProb) {
+                topProb = prediction[i].probability;
+                topClass = prediction[i].className;
+            }
+        }
+
+        const btn = document.getElementById('nextBtn');
+        
+        // Logical Gates based on your Waste Categories
+        if (topClass === "Hazardous") {
+            labelContainer.innerHTML = "⚠️ HAZARDOUS DETECTED - STOP";
+            labelContainer.className = "status-badge text-center p-3 bg-danger text-white";
+            btn.classList.add('d-none');
+        } 
+        else if (topClass === "Recyclable Plastic") {
+            labelContainer.innerHTML = "✅ RECYCLABLE PLASTIC DETECTED";
+            labelContainer.className = "status-badge text-center p-3 bg-success text-white";
+            btn.classList.remove('d-none');
+        } 
+        else if (topClass === "Non-Hazardous") {
+            labelContainer.innerHTML = "ℹ️ GENERAL WASTE (NON-RECYCLABLE)";
+            labelContainer.className = "status-badge text-center p-3 bg-secondary text-white";
+            btn.classList.add('d-none');
+        }
+        else {
+            labelContainer.innerHTML = "Scanning...";
+            labelContainer.className = "status-badge text-center p-3 bg-white";
+        }
+    }
+
+    function goToReward() {
+        webcam.stop();
+        document.getElementById('step-2').classList.add('d-none');
+        document.getElementById('step-3').classList.remove('d-none');
+        calculate();
+    }
+
+    function calculate() {
+        const item = document.getElementById('finalItem').value;
+        const qty = parseInt(document.getElementById('quantity').value) || 0;
+        const rates = wasteRates[item];
+
+        const totalRevenue = qty * rates.market;
+        const totalReward = totalRevenue * rates.rewardPct;
+
+        document.getElementById('valRevenue').innerText = totalRevenue.toFixed(2);
+        document.getElementById('valReward').innerText = totalReward.toFixed(2);
+    }
+
+    function submitLog() {
+        const staff = document.getElementById('staffName').value;
+        const reward = document.getElementById('valReward').innerText;
+        alert(`Success!\nStaff: ${staff}\nReward: ৳${reward} added to your profile.`);
+        location.reload();
     }
 </script>
 
