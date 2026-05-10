@@ -7,39 +7,74 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body { background-color: #f4f7f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .scanner-card { border-radius: 15px; overflow: hidden; border: none; }
+        .scanner-card { border-radius: 15px; overflow: hidden; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         #webcam-container canvas { width: 100% !important; height: auto !important; border-radius: 10px; }
-        .status-badge { font-size: 1.2rem; font-weight: bold; transition: all 0.3s ease; }
+        .status-badge { font-size: 1.1rem; font-weight: bold; transition: all 0.3s ease; }
         .reward-box { background: #e8f5e9; border-radius: 10px; padding: 15px; border: 1px solid #c8e6c9; }
+        .form-label { font-weight: 600; color: #444; }
     </style>
 </head>
 <body class="p-3 p-md-5">
 
-<div class="container" style="max-width: 600px;">
+<div class="container" style="max-width: 650px;">
     <div class="text-center mb-4">
         <h2 class="fw-bold text-primary">Handy Audit System</h2>
         <p class="text-muted">Smart Medical Waste Segregation & Rewards</p>
     </div>
 
-    <div id="step-1" class="card p-4 shadow-sm scanner-card mb-4">
-        <h5 class="mb-3">Staff Identification</h5>
+    <div id="step-1" class="card p-4 scanner-card mb-4">
+        <h5 class="mb-3 border-bottom pb-2">Staff Identification</h5>
+        
         <div class="mb-3">
-            <input type="text" id="staffName" class="form-control form-control-lg" placeholder="Enter Staff Name">
+            <label class="form-label">Institution Name</label>
+            <select id="hospitalName" class="form-select form-select-lg">
+                <option value="" selected disabled>Select Hospital/Institution</option>
+                <option value="Dhaka Medical College & Hospital">Dhaka Medical College & Hospital</option>
+                <option value="BSMMU">Bangabandhu Sheikh Mujib Medical University (BSMMU)</option>
+                <option value="Mitford">Sir Salimullah Medical College & Mitford Hospital</option>
+                <option value="Suhrawardy">Shaheed Suhrawardy Medical College & Hospital</option>
+                <option value="Chattogram MC">Chattogram Medical College Hospital</option>
+                <option value="Rajshahi MC">Rajshahi Medical College Hospital</option>
+                <option value="Mymensingh MC">Mymensingh Medical College Hospital</option>
+                <option value="Sylhet MAG Osmani">Sylhet MAG Osmani Medical College Hospital</option>
+                <option value="Sher-e-Bangla MC">Sher-e-Bangla Medical College Hospital (Barishal)</option>
+                <option value="Rangpur MC">Rangpur Medical College Hospital</option>
+                <option value="Evercare">Evercare Hospital Dhaka</option>
+                <option value="Square">Square Hospital</option>
+                <option value="United">United Hospital Limited</option>
+                <option value="Labaid">Labaid Specialized Hospital</option>
+                <option value="BIRDEM">BIRDEM General Hospital</option>
+                <option value="Ibn Sina">Ibn Sina Specialized Hospital</option>
+                <option value="Bangladesh MC">Bangladesh Medical College & Hospital</option>
+                <option value="Holy Family">Holy Family Red Crescent Medical College & Hospital</option>
+                <option value="Enam MC">Enam Medical College & Hospital</option>
+                <option value="Anwer Khan Modern">Anwer Khan Modern Medical College Hospital</option>
+                <option value="CHRF">CHRF</option>
+                <option value="icddr,b">icddr,b</option>
+            </select>
         </div>
+
         <div class="mb-3">
+            <label class="form-label">Staff Name</label>
+            <input type="text" id="staffName" class="form-control form-control-lg" placeholder="Full Name">
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Assigned Ward</label>
             <select id="ward" class="form-select form-select-lg">
                 <option value="" selected disabled>Select Ward</option>
                 <option value="ICU">ICU</option>
                 <option value="Emergency">Emergency</option>
                 <option value="Radiology">Radiology</option>
                 <option value="General Ward">General Ward</option>
+                <option value="Operating Theater">Operating Theater</option>
             </select>
         </div>
-        <button class="btn btn-primary btn-lg w-100" onclick="startScanner()">Open AI Scanner</button>
+        <button class="btn btn-primary btn-lg w-100 shadow-sm" onclick="startScanner()">Open AI Scanner</button>
     </div>
 
     <div id="step-2" class="d-none">
-        <div class="card shadow-sm scanner-card mb-3">
+        <div class="card scanner-card mb-3">
             <div id="webcam-container"></div>
             <div id="label-container" class="status-badge text-center p-3 bg-white">
                 Initializing AI...
@@ -47,16 +82,16 @@
         </div>
         
         <button id="nextBtn" class="btn btn-success btn-lg w-100 shadow d-none" onclick="goToReward()">
-            Calculate Reward BDT →
+            Confirm & Calculate Reward →
         </button>
     </div>
 
     <div id="step-3" class="d-none">
-        <div class="card p-4 shadow-sm scanner-card">
-            <h5 class="text-success mb-3">Reward Calculation</h5>
+        <div class="card p-4 scanner-card">
+            <h5 class="text-success mb-3 border-bottom pb-2">Reward Calculation</h5>
             
             <div class="mb-3">
-                <label class="form-label small fw-bold">Confirmed Waste Type</label>
+                <label class="form-label small fw-bold">Waste Type Sub-group</label>
                 <select id="finalItem" class="form-select" onchange="calculate()">
                     <option value="Saline Bag">Saline Bag (Plastic)</option>
                     <option value="IV Tube">IV Tube (Plastic)</option>
@@ -83,8 +118,8 @@
                 </div>
             </div>
 
-            <button class="btn btn-success btn-lg w-100" onclick="submitLog()">Log to Firebase Ledger</button>
-            <button class="btn btn-link btn-sm w-100 mt-2 text-muted" onclick="location.reload()">Cancel & Restart</button>
+            <button class="btn btn-success btn-lg w-100 mb-2" onclick="submitLog()">Log to Ledger</button>
+            <button class="btn btn-outline-secondary w-100" onclick="location.reload()">Reset Scanner</button>
         </div>
     </div>
 </div>
@@ -93,12 +128,12 @@
 <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
 
 <script>
-    // YOUR EXPORTED MODEL LINK
+    // MODEL A LINK
     const MODEL_URL = "https://teachablemachine.withgoogle.com/models/f3f-Bo6n1/";
 
     let model, webcam, labelContainer, maxPredictions;
 
-    // Item Rates for Reward Logic
+    // Pricing/Reward rates
     const wasteRates = {
         "Saline Bag": { market: 5.50, rewardPct: 0.20 },
         "IV Tube": { market: 3.00, rewardPct: 0.15 },
@@ -107,24 +142,22 @@
     };
 
     async function startScanner() {
+        const hospital = document.getElementById('hospitalName').value;
         const staff = document.getElementById('staffName').value;
         const ward = document.getElementById('ward').value;
 
-        if(!staff || !ward) {
-            alert("Please enter Staff Name and select a Ward first.");
+        if(!hospital || !staff || !ward) {
+            alert("Please fill in all identification fields.");
             return;
         }
 
         document.getElementById('step-1').classList.add('d-none');
         document.getElementById('step-2').classList.remove('d-none');
 
-        // Load model
         model = await tmImage.load(MODEL_URL + "model.json", MODEL_URL + "metadata.json");
         maxPredictions = model.getTotalClasses();
 
-        // Setup Webcam
-        const flip = true; 
-        webcam = new tmImage.Webcam(400, 400, flip);
+        webcam = new tmImage.Webcam(400, 400, true);
         await webcam.setup();
         await webcam.play();
         window.requestAnimationFrame(loop);
@@ -153,25 +186,21 @@
 
         const btn = document.getElementById('nextBtn');
         
-        // Logical Gates based on your Waste Categories
+        // Logical Gates based on Categories
         if (topClass === "Hazardous") {
-            labelContainer.innerHTML = "⚠️ HAZARDOUS DETECTED - STOP";
+            labelContainer.innerHTML = "⚠️ HAZARDOUS - CANNOT RECYCLE";
             labelContainer.className = "status-badge text-center p-3 bg-danger text-white";
             btn.classList.add('d-none');
         } 
         else if (topClass === "Recyclable Plastic") {
-            labelContainer.innerHTML = "✅ RECYCLABLE PLASTIC DETECTED";
+            labelContainer.innerHTML = "✅ RECYCLABLE DETECTED";
             labelContainer.className = "status-badge text-center p-3 bg-success text-white";
             btn.classList.remove('d-none');
         } 
-        else if (topClass === "Non-Hazardous") {
-            labelContainer.innerHTML = "ℹ️ GENERAL WASTE (NON-RECYCLABLE)";
+        else {
+            labelContainer.innerHTML = "Non-Hazardous / Scanning...";
             labelContainer.className = "status-badge text-center p-3 bg-secondary text-white";
             btn.classList.add('d-none');
-        }
-        else {
-            labelContainer.innerHTML = "Scanning...";
-            labelContainer.className = "status-badge text-center p-3 bg-white";
         }
     }
 
@@ -185,22 +214,24 @@
     function calculate() {
         const item = document.getElementById('finalItem').value;
         const qty = parseInt(document.getElementById('quantity').value) || 0;
-        const rates = wasteRates[item];
+        const rateData = wasteRates[item];
 
-        const totalRevenue = qty * rates.market;
-        const totalReward = totalRevenue * rates.rewardPct;
+        const totalRevenue = qty * rateData.market;
+        const totalReward = totalRevenue * rateData.rewardPct;
 
         document.getElementById('valRevenue').innerText = totalRevenue.toFixed(2);
         document.getElementById('valReward').innerText = totalReward.toFixed(2);
     }
 
     function submitLog() {
+        const hospital = document.getElementById('hospitalName').value;
         const staff = document.getElementById('staffName').value;
         const reward = document.getElementById('valReward').innerText;
-        alert(`Success!\nStaff: ${staff}\nReward: ৳${reward} added to your profile.`);
+        
+        // This alerts the user; you can link this to Firebase later
+        alert(`Logged to Ledger!\nInstitution: ${hospital}\nStaff: ${staff}\nReward: ৳${reward}`);
         location.reload();
     }
 </script>
-
 </body>
 </html>
