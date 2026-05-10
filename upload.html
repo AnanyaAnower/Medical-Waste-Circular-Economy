@@ -32,11 +32,25 @@
                 <option value="BSMMU">Bangabandhu Sheikh Mujib Medical University (BSMMU)</option>
                 <option value="Mitford">Sir Salimullah Medical College & Mitford Hospital</option>
                 <option value="Suhrawardy">Shaheed Suhrawardy Medical College & Hospital</option>
+                <option value="Chattogram MC">Chattogram Medical College Hospital</option>
+                <option value="Rajshahi MC">Rajshahi Medical College Hospital</option>
+                <option value="Mymensingh MC">Mymensingh Medical College Hospital</option>
+                <option value="Sylhet MAG Osmani">Sylhet MAG Osmani Medical College Hospital</option>
+                <option value="Sher-e-Bangla MC">Sher-e-Bangla Medical College Hospital (Barishal)</option>
+                <option value="Rangpur MC">Rangpur Medical College Hospital</option>
                 <option value="Evercare">Evercare Hospital Dhaka</option>
                 <option value="Square">Square Hospital</option>
+                <option value="United">United Hospital Limited</option>
+                <option value="Labaid">Labaid Specialized Hospital</option>
+                <option value="BIRDEM">BIRDEM General Hospital</option>
+                <option value="Ibn Sina">Ibn Sina Specialized Hospital</option>
+                <option value="Bangladesh MC">Bangladesh Medical College & Hospital</option>
+                <option value="Holy Family">Holy Family Red Crescent Medical College & Hospital</option>
+                <option value="Enam MC">Enam Medical College & Hospital</option>
+                <option value="Anwer Khan Modern">Anwer Khan Modern Medical College Hospital</option>
                 <option value="CHRF">CHRF</option>
                 <option value="icddr,b">icddr,b</option>
-                </select>
+            </select>
         </div>
         <div class="mb-3">
             <label class="form-label">Staff Name</label>
@@ -48,7 +62,9 @@
                 <option value="" selected disabled>Select Ward</option>
                 <option value="ICU">ICU</option>
                 <option value="Emergency">Emergency</option>
+                <option value="Radiology">Radiology</option>
                 <option value="General Ward">General Ward</option>
+                <option value="Operating Theater">Operating Theater</option>
             </select>
         </div>
         <button class="btn btn-primary btn-lg w-100 shadow-sm" onclick="startScanner()">Open AI Scanner</button>
@@ -66,17 +82,17 @@
         <div class="card p-4 scanner-card">
             <h5 class="text-success mb-3 border-bottom pb-2">Reward Calculation</h5>
             <div class="mb-3">
-                <label class="form-label small fw-bold">Recyclable Category</label>
+                <label class="form-label small fw-bold">Recyclable Item Category</label>
                 <select id="finalItem" class="form-select" onchange="calculate()">
                     <option value="Saline Bag">Saline Bag (Plastic)</option>
                     <option value="IV Tube">IV Tube (Plastic)</option>
                     <option value="Plastic Bottle">Plastic Bottle</option>
-                    <option value="Paper">Paper (Medicine Boxes/Notes)</option>
-                    <option value="Cardboard">Cardboard (Delivery Boxes)</option>
+                    <option value="Paper">Paper (Leaflets/Notes)</option>
+                    <option value="Cardboard">Cardboard (Boxes)</option>
                 </select>
             </div>
             <div class="mb-3">
-                <label class="form-label small fw-bold">Quantity (Pieces/Items)</label>
+                <label class="form-label small fw-bold">Quantity (Pieces)</label>
                 <input type="number" id="quantity" class="form-control" value="1" min="1" oninput="calculate()">
             </div>
             <div class="reward-box text-center mb-4">
@@ -100,7 +116,9 @@
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
 <script>
-    const MODEL_URL = "https://teachablemachine.withgoogle.com/models/f3f-Bo6n1/";
+    // UPDATED LINK: https://teachablemachine.withgoogle.com/models/RghMeODeQ/
+    const MODEL_URL = "https://teachablemachine.withgoogle.com/models/RghMeODeQ/";
+
     let model, webcam, labelContainer, maxPredictions;
 
     const wasteRates = {
@@ -117,8 +135,10 @@
         }
         document.getElementById('step-1').classList.add('d-none');
         document.getElementById('step-2').classList.remove('d-none');
+        
         model = await tmImage.load(MODEL_URL + "model.json", MODEL_URL + "metadata.json");
         maxPredictions = model.getTotalClasses();
+        
         webcam = new tmImage.Webcam(400, 400, true);
         await webcam.setup(); await webcam.play();
         window.requestAnimationFrame(loop);
@@ -137,11 +157,13 @@
             }
         }
         const btn = document.getElementById('nextBtn');
+        
+        // Changed "Recyclable Plastic" to "Recyclable" to match your new model
         if (topClass === "Hazardous") {
             labelContainer.innerHTML = "⚠️ HAZARDOUS - STOP";
             labelContainer.className = "status-badge text-center p-3 bg-danger text-white";
             btn.classList.add('d-none');
-        } else if (topClass === "Recyclable Plastic") {
+        } else if (topClass === "Recyclable") {
             labelContainer.innerHTML = "✅ RECYCLABLE DETECTED";
             labelContainer.className = "status-badge text-center p-3 bg-success text-white";
             btn.classList.remove('d-none');
@@ -169,7 +191,7 @@
     }
 
     function submitLog() {
-        alert("Logged successfully!"); location.reload();
+        alert("Logged to Ledger Successfully!"); location.reload();
     }
 </script>
 </body>
