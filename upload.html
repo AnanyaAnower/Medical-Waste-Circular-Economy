@@ -3,301 +3,238 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Handy - AI Medical Waste Audit</title>
+    <title>AI Waste Scanner - Circular Economy</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { background-color: #f4f7f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .scanner-card { border-radius: 15px; overflow: hidden; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        #webcam-container canvas { width: 100% !important; height: auto !important; border-radius: 10px; }
-        .status-badge { font-size: 1.1rem; font-weight: bold; transition: all 0.3s ease; }
-        .reward-box { background: #e8f5e9; border-radius: 10px; padding: 15px; border: 1px solid #c8e6c9; }
-        .form-label { font-weight: 600; color: #444; }
-        .auto-tag { font-size: 0.8rem; background: #0d6efd; color: white; padding: 2px 8px; border-radius: 10px; margin-left: 10px; }
+        body { background-color: #f0f2f5; font-family: 'Inter', sans-serif; }
+        .scanner-card { border-radius: 20px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.1); overflow: hidden; }
+        #webcam-container { background: #000; border-radius: 15px; overflow: hidden; position: relative; margin-bottom: 20px; }
+        #webcam-container canvas { width: 100% !important; height: auto !important; }
+        .reward-badge { background: #e8f5e9; color: #2e7d32; padding: 15px; border-radius: 12px; border-left: 5px solid #2e7d32; }
     </style>
 </head>
-<body class="p-3 p-md-5">
+<body class="p-3">
 
-<div class="container" style="max-width: 650px;">
-    <div class="text-center mb-4">
-        <h2 class="fw-bold text-primary">Handy Audit System</h2>
-        <p class="text-muted">Hierarchical AI Medical Waste Classification</p>
-    </div>
-
-    <div id="step-1" class="card p-4 scanner-card mb-4">
-        <h5 class="mb-3 border-bottom pb-2">Staff Identification</h5>
-        
-        <div class="mb-3">
-            <label class="form-label">Institution Name</label>
-            <select id="hospitalName" class="form-select form-select-lg">
-                <option value="" selected disabled>Select Hospital/Institution</option>
-                <option value="Dhaka Medical College & Hospital">Dhaka Medical College & Hospital</option>
-                <option value="BSMMU">Bangabandhu Sheikh Mujib Medical University (BSMMU)</option>
-                <option value="Mitford">Sir Salimullah Medical College & Mitford Hospital</option>
-                <option value="Suhrawardy">Shaheed Suhrawardy Medical College & Hospital</option>
-                <option value="Chattogram MC">Chattogram Medical College Hospital</option>
-                <option value="Rajshahi MC">Rajshahi Medical College Hospital</option>
-                <option value="Mymensingh MC">Mymensingh Medical College Hospital</option>
-                <option value="Sylhet MAG Osmani">Sylhet MAG Osmani Medical College Hospital</option>
-                <option value="Sher-e-Bangla MC">Sher-e-Bangla Medical College Hospital (Barishal)</option>
-                <option value="Rangpur MC">Rangpur Medical College Hospital</option>
-                <option value="Evercare">Evercare Hospital Dhaka</option>
-                <option value="Square">Square Hospital</option>
-                <option value="United">United Hospital Limited</option>
-                <option value="Labaid">Labaid Specialized Hospital</option>
-                <option value="BIRDEM">BIRDEM General Hospital</option>
-                <option value="Ibn Sina">Ibn Sina Specialized Hospital</option>
-                <option value="Bangladesh MC">Bangladesh Medical College & Hospital</option>
-                <option value="Holy Family">Holy Family Red Crescent Medical College & Hospital</option>
-                <option value="Enam MC">Enam Medical College & Hospital</option>
-                <option value="Anwer Khan Modern">Anwer Khan Modern Medical College Hospital</option>
-                <option value="CHRF">CHRF</option>
-                <option value="icddr,b">icddr,b</option>
-            </select>
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label">Staff Name</label>
-            <input type="text" id="staffName" class="form-control form-control-lg" placeholder="Full Name">
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label">Assigned Ward</label>
-            <select id="ward" class="form-select form-select-lg">
-                <option value="" selected disabled>Select Ward</option>
-                <option value="ICU">ICU</option>
-                <option value="Emergency">Emergency</option>
-                <option value="Radiology">Radiology</option>
-                <option value="General Ward">General Ward</option>
-                <option value="Operating Theater">Operating Theater</option>
-                <option value="Nephrology">Nephrology</option>
-                <option value="Oncology">Oncology</option>
-                <option value="Cardiology">Cardiology</option>
-                <option value="Pediatrics">Pediatrics</option>
-                <option value="Outpatient">Outpatient (OPD)</option>
-            </select>
-        </div>
-
-        <button class="btn btn-primary btn-lg w-100 shadow-sm" onclick="startScanner()">Open AI Scanner</button>
-    </div>
-
-    <div id="step-2" class="d-none">
-        <div class="card scanner-card mb-3">
-            <div id="webcam-container"></div>
-            <div id="label-container" class="status-badge text-center p-3 bg-white">Initializing Models...</div>
-        </div>
-        <button id="nextBtn" class="btn btn-success btn-lg w-100 shadow d-none" onclick="goToReward()">Confirm & Calculate Reward →</button>
-    </div>
-
-    <div id="step-3" class="d-none">
-        <div class="card p-4 scanner-card">
-            <h5 class="text-success mb-3 border-bottom pb-2">Reward Calculation <span class="auto-tag">AI Identified</span></h5>
+    <div class="container" style="max-width: 500px;">
+        <div id="step-1" class="card p-4 scanner-card">
+            <h4 class="fw-bold mb-3">Staff Identification</h4>
             <div class="mb-3">
-                <label class="form-label small fw-bold">Recyclable Category</label>
-                <select id="finalItem" class="form-select" onchange="calculate()">
-                    <option value="Saline Bag">Saline Bag (Plastic)</option>
-                    <option value="IV Tube">IV Tube (Plastic)</option>
-                    <option value="Plastic Bottle">Plastic Bottle</option>
-                    <option value="Paper & Cardboard">Paper & Cardboard</option>
+                <label class="form-label small fw-bold">Select Hospital</label>
+                <select id="hospitalName" class="form-select">
+                    <option value="Dhaka Medical College">Dhaka Medical College</option>
+                    <option value="Evercare Hospital">Evercare Hospital</option>
+                    <option value="Square Hospital">Square Hospital</option>
                 </select>
             </div>
             <div class="mb-3">
-                <label class="form-label small fw-bold">Quantity (Pieces)</label>
-                <input type="number" id="quantity" class="form-control" value="1" min="1" oninput="calculate()">
+                <label class="form-label small fw-bold">Staff Name</label>
+                <input type="text" id="staffName" class="form-control" placeholder="Enter your name">
             </div>
-            <div class="reward-box text-center mb-4">
-                <div class="row">
-                    <div class="col-6">
-                        <small class="text-muted">Market Value</small>
-                        <h4 class="text-success mb-0">৳ <span id="valRevenue">0</span></h4>
-                    </div>
-                    <div class="col-6 border-start">
-                        <small class="text-muted">Staff Reward</small>
-                        <h4 class="text-primary mb-0">৳ <span id="valReward">0</span></h4>
-                    </div>
+            <div class="mb-3">
+                <label class="form-label small fw-bold">Ward/Department</label>
+                <input type="text" id="ward" class="form-control" placeholder="e.g. ICU, Surgical-1">
+            </div>
+            <button class="btn btn-primary w-100 py-3 fw-bold" onclick="startScanner()">START AI SCANNER</button>
+        </div>
+
+        <div id="step-2" class="card p-4 scanner-card d-none">
+            <h5 class="fw-bold mb-3 text-center">Scan Medical Waste</h5>
+            <div id="webcam-container"></div>
+            <div id="label-container" class="text-center mb-3"></div>
+            <button id="nextBtn" class="btn btn-success w-100 py-3 fw-bold d-none" onclick="goToReward()">PROCEED TO REWARD</button>
+        </div>
+
+        <div id="step-3" class="card p-4 scanner-card d-none">
+            <h5 class="fw-bold mb-4">Calculate Circular Reward</h5>
+            <div class="mb-3">
+                <label class="form-label small fw-bold">Identified Item</label>
+                <input type="text" id="finalItem" class="form-control" readonly>
+            </div>
+            <div class="mb-3">
+                <label class="form-label small fw-bold">Quantity (Units/Kg)</label>
+                <input type="number" id="quantity" class="form-control" value="1" oninput="calculate()">
+            </div>
+            <div class="reward-badge mb-4">
+                <div class="d-flex justify-content-between">
+                    <span>Market Value:</span>
+                    <span class="fw-bold">৳ <span id="valRevenue">0.00</span></span>
+                </div>
+                <div class="d-flex justify-content-between mt-2">
+                    <span class="fw-bold">Your Profit Share:</span>
+                    <span class="fw-bold" style="font-size: 1.2rem;">৳ <span id="valReward">0.00</span></span>
                 </div>
             </div>
-            <button class="btn btn-success btn-lg w-100 mb-2" onclick="submitLog()">Log to Ledger</button>
-            <button class="btn btn-outline-secondary w-100" onclick="location.reload()">Reset</button>
+            <button class="btn btn-primary w-100 py-3 fw-bold" onclick="submitLog()">LOG TO LEDGER</button>
         </div>
     </div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
-<script>
-    // Model URLs
-    const MODEL_A_URL = "https://teachablemachine.withgoogle.com/models/RghMeODeQ/";
-    const MODEL_B_URL = "https://teachablemachine.withgoogle.com/models/hUQ-SIjKT/";
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
 
-    let modelA, modelB, webcam, labelContainer, maxPredictionsA, maxPredictionsB;
-    let currentBestMatch = ""; 
-    let isPreviewing = true; // New state to control when AI runs
-
-    const wasteRates = {
-        "Saline Bag": { market: 5.50, rewardPct: 0.20 },
-        "IV Tube": { market: 3.00, rewardPct: 0.15 },
-        "Plastic Bottle": { market: 2.50, rewardPct: 0.10 },
-        "Paper & Cardboard": { market: 3.50, rewardPct: 0.12 }
-    };
-
-    async function startScanner() {
-        const hospital = document.getElementById('hospitalName').value;
-        const name = document.getElementById('staffName').value;
-        const ward = document.getElementById('ward').value;
-
-        if(!hospital || !name || !ward) {
-            alert("Identification required."); return;
-        }
-        
-        document.getElementById('step-1').classList.add('d-none');
-        document.getElementById('step-2').classList.remove('d-none');
-        
-        labelContainer = document.getElementById("label-container");
-        labelContainer.innerHTML = "Loading AI Brain...";
-
-        modelA = await tmImage.load(MODEL_A_URL + "model.json", MODEL_A_URL + "metadata.json");
-        modelB = await tmImage.load(MODEL_B_URL + "model.json", MODEL_B_URL + "metadata.json");
-        maxPredictionsA = modelA.getTotalClasses();
-        maxPredictionsB = modelB.getTotalClasses();
-        
-        // Setup webcam: 400x400, false (no mirror), back camera
-        webcam = new tmImage.Webcam(400, 400, false); 
-        await webcam.setup({ facingMode: "environment" }); 
-        await webcam.play();
-        
-        document.getElementById("webcam-container").appendChild(webcam.canvas);
-        
-        labelContainer.innerHTML = `<button class="btn btn-warning w-100 fw-bold py-3" onclick="captureAndPredict()">📸 TAKE PICTURE</button>`;
-        
-        // Start the visual preview loop
-        window.requestAnimationFrame(previewLoop);
-    }
-
-    // This loop keeps the camera alive so you can aim, but does NOT run AI
-    async function previewLoop() {
-        if(isPreviewing) {
-            webcam.update();
-            window.requestAnimationFrame(previewLoop);
-        }
-    }
-
-   async function captureAndPredict() {
-        isPreviewing = false; 
-        labelContainer.innerHTML = `<div class="spinner-border text-primary" role="status"></div><br>Analyzing...`;
-
-        // 1. Run Gatekeeper (Model A)
-        const predictionA = await modelA.predict(webcam.canvas);
-        let topClassA = ""; let topProbA = 0;
-        for (let i = 0; i < maxPredictionsA; i++) {
-            if(predictionA[i].probability > topProbA) {
-                topProbA = predictionA[i].probability; topClassA = predictionA[i].className;
-            }
-        }
-
-        const btn = document.getElementById('nextBtn');
-
-        if (topClassA === "Hazardous" && topProbA > 0.85) { 
-            // Only force Hazardous if the AI is very sure (>85%)
-            labelContainer.innerHTML = `
-                <div class="p-3 bg-danger text-white rounded mb-2">⚠️ HAZARDOUS DETECTED</div>
-                <button class="btn btn-outline-secondary w-100 mb-2" onclick="resetCapture()">Try Again</button>
-                <div class="text-muted small mb-2">AI might be wrong?</div>
-                <button class="btn btn-sm btn-link text-primary" onclick="forceRecyclable()">If Recyclable tap here</button>
-            `;
-        } 
-        else {
-            // Default to running Model B (The Detailer)
-            runDetailer();
-        }
-    }
-
-    async function runDetailer() {
-        labelContainer.innerHTML = `<div class="spinner-border text-success" role="status"></div><br>Identifying Material...`;
-        const predictionB = await modelB.predict(webcam.canvas);
-        let topClassB = ""; let topProbB = 0;
-        for (let j = 0; j < maxPredictionsB; j++) {
-            if(predictionB[j].probability > topProbB) {
-                topProbB = predictionB[j].probability; topClassB = predictionB[j].className;
-            }
-        }
-        
-        currentBestMatch = topClassB;
-        labelContainer.innerHTML = `
-            <div class="p-3 bg-success text-white rounded mb-2">✅ ${topClassB} Detected</div>
-            <button class="btn btn-outline-primary w-100" onclick="resetCapture()">Retake Photo</button>
-        `;
-        document.getElementById('nextBtn').classList.remove('d-none');
-    }
-
-    // MANUAL OVERRIDE FUNCTION
-    function forceRecyclable() {
-        runDetailer();
-    }
-
-    function resetCapture() {
-        isPreviewing = true;
-        document.getElementById('nextBtn').classList.add('d-none');
-        labelContainer.innerHTML = `<button class="btn btn-warning w-100 fw-bold py-3 shadow-sm" onclick="captureAndPredict()">📸 TAKE PICTURE</button>`;
-        window.requestAnimationFrame(previewLoop);
-    }
-
-    function goToReward() {
-        webcam.stop();
-        document.getElementById('step-2').classList.add('d-none');
-        document.getElementById('step-3').classList.remove('d-none');
-        document.getElementById('finalItem').value = currentBestMatch;
-        calculate();
-    }
-
-    function calculate() {
-        const item = document.getElementById('finalItem').value;
-        const qty = parseInt(document.getElementById('quantity').value) || 0;
-        const rates = wasteRates[item];
-        const rev = qty * rates.market;
-        document.getElementById('valRevenue').innerText = rev.toFixed(2);
-        document.getElementById('valReward').innerText = (rev * rates.rewardPct).toFixed(2);
-    }
-
-    // LEDGER SYSTEM
-    function submitLog() {
-        const logEntry = {
-            timestamp: new Date().toLocaleString(),
-            hospital: document.getElementById('hospitalName').value,
-            ward: document.getElementById('ward').value,
-            staff: document.getElementById('staffName').value,
-            item: document.getElementById('finalItem').value,
-            value: document.getElementById('valRevenue').innerText,
-            reward: document.getElementById('valReward').innerText
+    <script>
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyDL0488_Y22MMpiaz0xKAEweLdaOacrA1o",
+            authDomain: "medical-waste-circular-economy.firebaseapp.com",
+            databaseURL: "https://medical-waste-circular-economy-default-rtdb.firebaseio.com/",
+            projectId: "medical-waste-circular-economy",
+            storageBucket: "medical-waste-circular-economy.firebasestorage.app",
+            messagingSenderId: "180545712948",
+            appId: "1:180545712948:web:3e93c730afcf6306c7eb61",
+            measurementId: "G-G49S8FGXDV"
         };
 
-        // This sends the data to the cloud!
-        firebase.database().ref('wasteLedger').push(logEntry)
-            .then(() => {
-                showSuccessPopup(logEntry.staff, logEntry.item, logEntry.reward);
-            });
-    }
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
-   function showSuccessPopup(staff, item, reward) {
-        const overlay = document.createElement('div');
-        overlay.style = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); display:flex; align-items:center; justify-content:center; z-index:9999; padding:20px;";
-        
-        overlay.innerHTML = `
-            <div class="card p-4 text-center shadow-lg" style="max-width:400px; border-radius:20px; background:white;">
-                <div class="mb-3">
+        const MODEL_A_URL = "https://teachablemachine.withgoogle.com/models/RghMeODeQ/";
+        const MODEL_B_URL = "https://teachablemachine.withgoogle.com/models/hUQ-SIjKT/";
+
+        let modelA, modelB, webcam, labelContainer, maxPredictionsA, maxPredictionsB;
+        let currentBestMatch = ""; 
+        let isPreviewing = true; 
+
+        const wasteRates = {
+            "Saline Bag": { market: 5.50, rewardPct: 0.20 },
+            "IV Tube": { market: 3.00, rewardPct: 0.15 },
+            "Plastic Bottle": { market: 2.50, rewardPct: 0.10 },
+            "Paper & Cardboard": { market: 3.50, rewardPct: 0.12 }
+        };
+
+        async function startScanner() {
+            if(!document.getElementById('staffName').value || !document.getElementById('ward').value) {
+                alert("Identification required."); return;
+            }
+            document.getElementById('step-1').classList.add('d-none');
+            document.getElementById('step-2').classList.remove('d-none');
+            labelContainer = document.getElementById("label-container");
+            labelContainer.innerHTML = "Initializing AI...";
+
+            modelA = await tmImage.load(MODEL_A_URL + "model.json", MODEL_A_URL + "metadata.json");
+            modelB = await tmImage.load(MODEL_B_URL + "model.json", MODEL_B_URL + "metadata.json");
+            maxPredictionsA = modelA.getTotalClasses();
+            maxPredictionsB = modelB.getTotalClasses();
+            
+            webcam = new tmImage.Webcam(400, 400, false); 
+            await webcam.setup({ facingMode: "environment" }); 
+            await webcam.play();
+            document.getElementById("webcam-container").appendChild(webcam.canvas);
+            resetCapture();
+        }
+
+        async function previewLoop() {
+            if(isPreviewing) {
+                webcam.update();
+                window.requestAnimationFrame(previewLoop);
+            }
+        }
+
+        async function captureAndPredict() {
+            isPreviewing = false;
+            labelContainer.innerHTML = `<div class="spinner-border text-primary" role="status"></div><br>Analyzing...`;
+
+            const predictionA = await modelA.predict(webcam.canvas);
+            let topClassA = ""; let topProbA = 0;
+            for (let i = 0; i < maxPredictionsA; i++) {
+                if(predictionA[i].probability > topProbA) {
+                    topProbA = predictionA[i].probability; topClassA = predictionA[i].className;
+                }
+            }
+
+            if (topClassA === "Hazardous" && topProbA > 0.85) {
+                labelContainer.innerHTML = `
+                    <div class="p-3 bg-danger text-white rounded mb-2">⚠️ HAZARDOUS DETECTED</div>
+                    <button class="btn btn-outline-secondary w-100 mb-2" onclick="resetCapture()">Try Again</button>
+                    <button class="btn btn-sm btn-link text-primary" onclick="forceRecyclable()">If Recyclable tap here</button>
+                `;
+            } else {
+                runDetailer();
+            }
+        }
+
+        async function runDetailer() {
+            labelContainer.innerHTML = `<div class="spinner-border text-success" role="status"></div><br>Identifying Material...`;
+            const predictionB = await modelB.predict(webcam.canvas);
+            let topClassB = ""; let topProbB = 0;
+            for (let j = 0; j < maxPredictionsB; j++) {
+                if(predictionB[j].probability > topProbB) {
+                    topProbB = predictionB[j].probability; topClassB = predictionB[j].className;
+                }
+            }
+            currentBestMatch = topClassB;
+            labelContainer.innerHTML = `
+                <div class="p-3 bg-success text-white rounded mb-2">✅ ${topClassB} Detected</div>
+                <button class="btn btn-outline-primary w-100" onclick="resetCapture()">Retake Photo</button>
+            `;
+            document.getElementById('nextBtn').classList.remove('d-none');
+        }
+
+        function forceRecyclable() { runDetailer(); }
+
+        function resetCapture() {
+            isPreviewing = true;
+            document.getElementById('nextBtn').classList.add('d-none');
+            labelContainer.innerHTML = `<button class="btn btn-warning w-100 fw-bold py-3 shadow-sm" onclick="captureAndPredict()">📸 TAKE PICTURE</button>`;
+            window.requestAnimationFrame(previewLoop);
+        }
+
+        function goToReward() {
+            webcam.stop();
+            document.getElementById('step-2').classList.add('d-none');
+            document.getElementById('step-3').classList.remove('d-none');
+            document.getElementById('finalItem').value = currentBestMatch;
+            calculate();
+        }
+
+        function calculate() {
+            const item = document.getElementById('finalItem').value;
+            const qty = parseInt(document.getElementById('quantity').value) || 0;
+            const rates = wasteRates[item] || { market: 1.0, rewardPct: 0.1 };
+            const rev = qty * rates.market;
+            document.getElementById('valRevenue').innerText = rev.toFixed(2);
+            document.getElementById('valReward').innerText = (rev * rates.rewardPct).toFixed(2);
+        }
+
+        function submitLog() {
+            const staff = document.getElementById('staffName').value;
+            const item = document.getElementById('finalItem').value;
+            const reward = document.getElementById('valReward').innerText;
+            
+            const logEntry = {
+                timestamp: new Date().toLocaleString(),
+                hospital: document.getElementById('hospitalName').value,
+                ward: document.getElementById('ward').value,
+                staff: staff,
+                item: item,
+                value: document.getElementById('valRevenue').innerText,
+                reward: reward,
+                status: "Verified"
+            };
+
+            db.ref('wasteLedger').push(logEntry).then(() => {
+                showSuccessPopup(staff, item, reward);
+            });
+        }
+
+        function showSuccessPopup(staff, item, reward) {
+            const overlay = document.createElement('div');
+            overlay.style = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); display:flex; align-items:center; justify-content:center; z-index:9999; padding:20px;";
+            overlay.innerHTML = `
+                <div class="card p-4 text-center shadow-lg" style="max-width:400px; border-radius:20px; background:white;">
                     <span style="font-size: 50px;">🎉</span>
+                    <h3 class="text-success fw-bold">Logged to Cloud!</h3>
+                    <p class="text-muted">Great job, <strong>${staff}</strong>! Reward earned for ${item}.</p>
+                    <div class="p-3 mb-3" style="background:#e8f5e9; border-radius:15px;">
+                        <small class="text-uppercase fw-bold text-muted">Your Profit</small>
+                        <h2 class="text-success mb-0">৳ ${reward}</h2>
+                    </div>
+                    <button class="btn btn-primary btn-lg w-100" onclick="location.reload()">Scan Next Item</button>
                 </div>
-                <h3 class="text-success fw-bold">Successfully Logged!</h3>
-                <p class="text-muted">Great job, <strong>${staff}</strong>! You just recycled 1 ${item}.</p>
-                <div class="p-3 mb-3" style="background:#e8f5e9; border-radius:15px;">
-                    <small class="text-uppercase fw-bold text-muted" style="letter-spacing:1px;">Your Earned Profit</small>
-                    <h2 class="text-success mb-0">৳ ${reward}</h2>
-                </div>
-                <button class="btn btn-primary btn-lg w-100" onclick="location.reload()">Scan Next Item</button>
-            </div>
-        `;
-        
-        document.body.appendChild(overlay);
-    }
-</script>
+            `;
+            document.body.appendChild(overlay);
+        }
+    </script>
 </body>
 </html>
