@@ -131,6 +131,7 @@
 
     let modelA, modelB, webcam, labelContainer, maxPredictionsA, maxPredictionsB;
     let currentBestMatch = ""; 
+    let isPreviewing = true; // New state to control when AI runs
 
     const wasteRates = {
         "Saline Bag": { market: 5.50, rewardPct: 0.20 },
@@ -159,24 +160,32 @@
         maxPredictionsA = modelA.getTotalClasses();
         maxPredictionsB = modelB.getTotalClasses();
         
-        // Setup webcam - No mirror (false) and back camera
+        // Setup webcam: 400x400, false (no mirror), back camera
         webcam = new tmImage.Webcam(400, 400, false); 
         await webcam.setup({ facingMode: "environment" }); 
         await webcam.play();
         
         document.getElementById("webcam-container").appendChild(webcam.canvas);
         
-        // Change the button text to "Capture & Analyze"
-        labelContainer.innerHTML = `<button class="btn btn-warning w-100 fw-bold" onclick="captureAndPredict()">📸 CAPTURE & ANALYZE</button>`;
+        labelContainer.innerHTML = `<button class="btn btn-warning w-100 fw-bold py-3" onclick="captureAndPredict()">📸 TAKE PICTURE</button>`;
+        
+        // Start the visual preview loop
+        window.requestAnimationFrame(previewLoop);
     }
 
-    // We removed the 'loop' function to stop the flickering!
+    // This loop keeps the camera alive so you can aim, but does NOT run AI
+    async function previewLoop() {
+        if(isPreviewing) {
+            webcam.update();
+            window.requestAnimationFrame(previewLoop);
+        }
+    }
 
     async function captureAndPredict() {
-        labelContainer.innerHTML = "Processing...";
-        webcam.update(); // Grab the current frame
+        isPreviewing = false; // Freeze the preview for analysis
+        labelContainer.innerHTML = `<div class="spinner-border text-primary" role="status"></div><br>Analyzing Frame...`;
 
-        // 1. Run Gatekeeper (Model A)
+        // Run Gatekeeper (Model A)
         const predictionA = await modelA.predict(webcam.canvas);
         let topClassA = ""; let topProbA = 0;
         for (let i = 0; i < maxPredictionsA; i++) {
@@ -188,12 +197,10 @@
         const btn = document.getElementById('nextBtn');
 
         if (topClassA === "Hazardous") {
-            labelContainer.innerHTML = `<div class="p-2 bg-danger text-white rounded">⚠️ HAZARDOUS DETECTED<br><small>Do not recycle. Dispose in Yellow Bin.</small></div>
-                                        <button class="btn btn-outline-secondary btn-sm mt-2" onclick="resetCapture()">Try Again</button>`;
-            btn.classList.add('d-none');
+            labelContainer.innerHTML = `<div class="p-3 bg-danger text-white rounded mb-2">⚠️ HAZARDOUS DETECTED</div>
+                                        <button class="btn btn-outline-secondary w-100" onclick="resetCapture()">Try Again</button>`;
         } 
         else if (topClassA === "Recyclable") {
-            // 2. Run Detailer (Model B)
             const predictionB = await modelB.predict(webcam.canvas);
             let topClassB = ""; let topProbB = 0;
             for (let j = 0; j < maxPredictionsB; j++) {
@@ -203,19 +210,21 @@
             }
             
             currentBestMatch = topClassB;
-            labelContainer.innerHTML = `<div class="p-2 bg-success text-white rounded">✅ RECYCLABLE: ${topClassB}</div>
-                                        <button class="btn btn-outline-primary btn-sm mt-2" onclick="resetCapture()">Rescan</button>`;
+            labelContainer.innerHTML = `<div class="p-3 bg-success text-white rounded mb-2">✅ ${topClassB} Detected</div>
+                                        <button class="btn btn-outline-primary w-100" onclick="resetCapture()">Retake Photo</button>`;
             btn.classList.remove('d-none');
         } 
         else {
-            labelContainer.innerHTML = `<div class="p-2 bg-secondary text-white rounded">Unable to identify.</div>
-                                        <button class="btn btn-warning btn-sm mt-2" onclick="captureAndPredict()">Try Again</button>`;
+            labelContainer.innerHTML = `<div class="p-3 bg-secondary text-white rounded mb-2">Object not recognized.</div>
+                                        <button class="btn btn-warning w-100" onclick="resetCapture()">Try Again</button>`;
         }
     }
 
     function resetCapture() {
+        isPreviewing = true;
         document.getElementById('nextBtn').classList.add('d-none');
-        labelContainer.innerHTML = `<button class="btn btn-warning w-100 fw-bold" onclick="captureAndPredict()">📸 CAPTURE & ANALYZE</button>`;
+        labelContainer.innerHTML = `<button class="btn btn-warning w-100 fw-bold py-3" onclick="captureAndPredict()">📸 TAKE PICTURE</button>`;
+        window.requestAnimationFrame(previewLoop);
     }
 
     function goToReward() {
@@ -235,7 +244,19 @@
         document.getElementById('valReward').innerText = (rev * rates.rewardPct).toFixed(2);
     }
 
-    function submitLog() { alert("Data logged!"); location.reload(); }
+    // LEDGER SYSTEM
+    function submitLog() {
+        const hospital = document.getElementById('hospitalName').value;
+        const ward = document.getElementById('ward').value;
+        const item = document.getElementById('finalItem').value;
+        const reward = document.getElementById('valReward').innerText;
+        
+        // Show success
+        alert(`Logged! ${item} from ${ward} ward. Reward: ৳${reward}`);
+        
+        // In a real app, we'd send this to Firebase. For now, it resets the app.
+        location.reload();
+    }
 </script>
 </body>
 </html>
