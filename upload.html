@@ -246,16 +246,24 @@
 
     // LEDGER SYSTEM
     function submitLog() {
-        const hospital = document.getElementById('hospitalName').value;
-        const ward = document.getElementById('ward').value;
-        const item = document.getElementById('finalItem').value;
-        const reward = document.getElementById('valReward').innerText;
-        
-        // Show success
-        alert(`Logged! ${item} from ${ward} ward. Reward: ৳${reward}`);
-        
-        // In a real app, we'd send this to Firebase. For now, it resets the app.
-        location.reload();
+        const logEntry = {
+            timestamp: new Date().toLocaleString(),
+            hospital: document.getElementById('hospitalName').value,
+            ward: document.getElementById('ward').value,
+            staff: document.getElementById('staffName').value,
+            item: document.getElementById('finalItem').value,
+            value: document.getElementById('valRevenue').innerText,
+            reward: document.getElementById('valReward').innerText,
+            status: "Verified"
+        };
+
+        // Get existing logs or start a new list
+        let history = JSON.parse(localStorage.getItem('wasteLedger')) || [];
+        history.unshift(logEntry); // Add new entry to the top
+        localStorage.setItem('wasteLedger', JSON.stringify(history));
+
+        alert("Successfully logged to Ledger!");
+        window.location.href = "index.html"; // Automatically take you to the Ledger to see it
     }
 </script>
 </body>
