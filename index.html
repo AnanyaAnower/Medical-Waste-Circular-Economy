@@ -72,52 +72,47 @@
         </div>
     </div>
 
-    <script>
-        function loadLedger() {
-            const tableBody = document.getElementById('ledgerBody');
-            // This pulls the data we saved in upload.html
-            const history = JSON.parse(localStorage.getItem('wasteLedger')) || [];
+   <script>
+    function loadLedger() {
+        const tableBody = document.getElementById('ledgerBody');
+        // Retrieve the data from shared browser memory
+        const history = JSON.parse(localStorage.getItem('wasteLedger')) || [];
+        
+        let totalRevenue = 0;
+        let totalSaved = 0;
+
+        if(history && history.length > 0) {
+            tableBody.innerHTML = ""; // Clear the "No entries found" message
             
-            let totalRevenue = 0;
-            let totalSaved = 0;
+            history.forEach(entry => {
+                const val = parseFloat(entry.value) || 0;
+                totalRevenue += val;
+                totalSaved += (val * 0.8); // 80% estimated savings
 
-            if(history.length > 0) {
-                tableBody.innerHTML = ""; // Clear the "0" state
-                
-                history.forEach(entry => {
-                    const val = parseFloat(entry.value) || 0;
-                    totalRevenue += val;
-                    // Formula: Disposal savings usually equals 80% of market value in medical waste logistics
-                    totalSaved += (val * 0.8);
+                const row = `<tr>
+                    <td>${entry.timestamp}</td>
+                    <td><strong>${entry.hospital}</strong></td>
+                    <td>${entry.ward}</td>
+                    <td>${entry.staff}</td>
+                    <td>${entry.item}</td>
+                    <td class="text-success">+${val.toFixed(2)} BDT</td>
+                    <td><span class="badge bg-success">Verified</span></td>
+                </tr>`;
+                tableBody.innerHTML += row;
+            });
 
-                    const row = `<tr>
-                        <td>${entry.timestamp}</td>
-                        <td><strong>${entry.hospital}</strong></td>
-                        <td>${entry.ward}</td>
-                        <td>${entry.staff}</td>
-                        <td>${entry.item}</td>
-                        <td class="text-success">+${val.toFixed(2)} BDT</td>
-                        <td><span class="badge bg-success">Verified</span></td>
-                    </tr>`;
-                    tableBody.innerHTML += row;
-                });
-
-                // Calculate Net ROI
-                // In medical waste circularity, ROI = (Revenue / Logistics Cost)
-                const netROI = totalRevenue > 0 ? ((totalRevenue / (totalRevenue - (totalRevenue * 0.4))) * 100) : 0;
-
-                // Update the Dashboard Numbers
-                document.getElementById('totalRevenue').innerText = totalRevenue.toFixed(2) + " BDT";
-                document.getElementById('totalSavings').innerText = totalSaved.toFixed(2) + " BDT";
-                document.getElementById('entryCount').innerText = history.length;
-                document.getElementById('roiValue').innerText = netROI.toFixed(1) + "%";
-            } else {
-                tableBody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No entries found. Start scanning items to see data!</td></tr>';
-            }
+            // Update stats boxes
+            const netROI = totalRevenue > 0 ? ((totalRevenue / (totalRevenue * 0.6)) * 100) : 0;
+            document.getElementById('totalRevenue').innerText = totalRevenue.toFixed(2) + " BDT";
+            document.getElementById('totalSavings').innerText = totalSaved.toFixed(2) + " BDT";
+            document.getElementById('entryCount').innerText = history.length;
+            document.getElementById('roiValue').innerText = netROI.toFixed(1) + "%";
         }
+    }
 
-        // Run the function when the page opens
-        window.onload = loadLedger;
-    </script>
+    // Ensures it runs on every page load/refresh
+    document.addEventListener('DOMContentLoaded', loadLedger);
+    window.addEventListener('pageshow', loadLedger); 
+</script>
 </body>
 </html>
