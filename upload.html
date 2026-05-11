@@ -130,7 +130,7 @@
     const MODEL_B_URL = "https://teachablemachine.withgoogle.com/models/hUQ-SIjKT/";
 
     let modelA, modelB, webcam, labelContainer, maxPredictionsA, maxPredictionsB;
-    let currentBestMatch = "Saline Bag"; 
+    let currentBestMatch = ""; 
 
     const wasteRates = {
         "Saline Bag": { market: 5.50, rewardPct: 0.20 },
@@ -145,32 +145,40 @@
         const ward = document.getElementById('ward').value;
 
         if(!hospital || !name || !ward) {
-            alert("Please complete all identification fields.");
-            return;
+            alert("Identification required."); return;
         }
-
+        
         document.getElementById('step-1').classList.add('d-none');
         document.getElementById('step-2').classList.remove('d-none');
+        
+        labelContainer = document.getElementById("label-container");
+        labelContainer.innerHTML = "Loading AI Brain...";
 
-        // Load Hierarchical Models
         modelA = await tmImage.load(MODEL_A_URL + "model.json", MODEL_A_URL + "metadata.json");
         modelB = await tmImage.load(MODEL_B_URL + "model.json", MODEL_B_URL + "metadata.json");
         maxPredictionsA = modelA.getTotalClasses();
         maxPredictionsB = modelB.getTotalClasses();
-
-        webcam = new tmImage.Webcam(400, 400, false);
-        await webcam.setup({ facingMode: { exact: "environment" } });
-        window.requestAnimationFrame(loop);
+        
+        // Setup webcam - No mirror (false) and back camera
+        webcam = new tmImage.Webcam(400, 400, false); 
+        await webcam.setup({ facingMode: "environment" }); 
+        await webcam.play();
+        
         document.getElementById("webcam-container").appendChild(webcam.canvas);
-        labelContainer = document.getElementById("label-container");
+        
+        // Change the button text to "Capture & Analyze"
+        labelContainer.innerHTML = `<button class="btn btn-warning w-100 fw-bold" onclick="captureAndPredict()">📸 CAPTURE & ANALYZE</button>`;
     }
 
-    async function loop() { webcam.update(); await predict(); window.requestAnimationFrame(loop); }
+    // We removed the 'loop' function to stop the flickering!
 
-    async function predict() {
+    async function captureAndPredict() {
+        labelContainer.innerHTML = "Processing...";
+        webcam.update(); // Grab the current frame
+
+        // 1. Run Gatekeeper (Model A)
         const predictionA = await modelA.predict(webcam.canvas);
         let topClassA = ""; let topProbA = 0;
-
         for (let i = 0; i < maxPredictionsA; i++) {
             if(predictionA[i].probability > topProbA) {
                 topProbA = predictionA[i].probability; topClassA = predictionA[i].className;
@@ -178,13 +186,14 @@
         }
 
         const btn = document.getElementById('nextBtn');
-        
+
         if (topClassA === "Hazardous") {
-            labelContainer.innerHTML = "⚠️ HAZARDOUS - STOP";
-            labelContainer.className = "status-badge text-center p-3 bg-danger text-white";
+            labelContainer.innerHTML = `<div class="p-2 bg-danger text-white rounded">⚠️ HAZARDOUS DETECTED<br><small>Do not recycle. Dispose in Yellow Bin.</small></div>
+                                        <button class="btn btn-outline-secondary btn-sm mt-2" onclick="resetCapture()">Try Again</button>`;
             btn.classList.add('d-none');
-        } else if (topClassA === "Recyclable") {
-            // Run Detailer Model B
+        } 
+        else if (topClassA === "Recyclable") {
+            // 2. Run Detailer (Model B)
             const predictionB = await modelB.predict(webcam.canvas);
             let topClassB = ""; let topProbB = 0;
             for (let j = 0; j < maxPredictionsB; j++) {
@@ -192,15 +201,21 @@
                     topProbB = predictionB[j].probability; topClassB = predictionB[j].className;
                 }
             }
+            
             currentBestMatch = topClassB;
-            labelContainer.innerHTML = `✅ RECYCLABLE: ${topClassB.toUpperCase()}`;
-            labelContainer.className = "status-badge text-center p-3 bg-success text-white";
+            labelContainer.innerHTML = `<div class="p-2 bg-success text-white rounded">✅ RECYCLABLE: ${topClassB}</div>
+                                        <button class="btn btn-outline-primary btn-sm mt-2" onclick="resetCapture()">Rescan</button>`;
             btn.classList.remove('d-none');
-        } else {
-            labelContainer.innerHTML = "Scanning Material...";
-            labelContainer.className = "status-badge text-center p-3 bg-secondary text-white";
-            btn.classList.add('d-none');
+        } 
+        else {
+            labelContainer.innerHTML = `<div class="p-2 bg-secondary text-white rounded">Unable to identify.</div>
+                                        <button class="btn btn-warning btn-sm mt-2" onclick="captureAndPredict()">Try Again</button>`;
         }
+    }
+
+    function resetCapture() {
+        document.getElementById('nextBtn').classList.add('d-none');
+        labelContainer.innerHTML = `<button class="btn btn-warning w-100 fw-bold" onclick="captureAndPredict()">📸 CAPTURE & ANALYZE</button>`;
     }
 
     function goToReward() {
@@ -220,10 +235,7 @@
         document.getElementById('valReward').innerText = (rev * rates.rewardPct).toFixed(2);
     }
 
-    function submitLog() {
-        alert("Transaction logged to ledger successfully!");
-        location.reload();
-    }
+    function submitLog() { alert("Data logged!"); location.reload(); }
 </script>
 </body>
 </html>
