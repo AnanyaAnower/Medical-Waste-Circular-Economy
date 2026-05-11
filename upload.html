@@ -260,29 +260,21 @@
 
     // LEDGER SYSTEM
     function submitLog() {
-        const staff = document.getElementById('staffName').value;
-        const item = document.getElementById('finalItem').value;
-        const reward = document.getElementById('valReward').innerText;
-        const revenue = document.getElementById('valRevenue').innerText;
-
         const logEntry = {
             timestamp: new Date().toLocaleString(),
             hospital: document.getElementById('hospitalName').value,
             ward: document.getElementById('ward').value,
-            staff: staff,
-            item: item,
-            value: revenue,
-            reward: reward,
-            status: "Verified"
+            staff: document.getElementById('staffName').value,
+            item: document.getElementById('finalItem').value,
+            value: document.getElementById('valRevenue').innerText,
+            reward: document.getElementById('valReward').innerText
         };
 
-        // 1. Save to LocalStorage for the Ledger page to find later
-        let history = JSON.parse(localStorage.getItem('wasteLedger')) || [];
-        history.unshift(logEntry);
-        localStorage.setItem('wasteLedger', JSON.stringify(history));
-
-        // 2. Show the "Successfully Logged" Pop-up
-        showSuccessPopup(staff, item, reward);
+        // This sends the data to the cloud!
+        firebase.database().ref('wasteLedger').push(logEntry)
+            .then(() => {
+                showSuccessPopup(logEntry.staff, logEntry.item, logEntry.reward);
+            });
     }
 
    function showSuccessPopup(staff, item, reward) {
