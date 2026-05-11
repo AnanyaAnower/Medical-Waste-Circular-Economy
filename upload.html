@@ -8,7 +8,7 @@
     <style>
         body { background-color: #f0f2f5; font-family: 'Inter', sans-serif; }
         .scanner-card { border-radius: 20px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.1); overflow: hidden; }
-        #webcam-container { background: #000; border-radius: 15px; overflow: hidden; position: relative; margin-bottom: 20px; }
+        #webcam-container { background: #000; border-radius: 15px; overflow: hidden; position: relative; margin-bottom: 20px; min-height: 300px; }
         #webcam-container canvas { width: 100% !important; height: auto !important; }
         .reward-badge { background: #e8f5e9; color: #2e7d32; padding: 15px; border-radius: 12px; border-left: 5px solid #2e7d32; }
     </style>
@@ -22,27 +22,27 @@
                 <label class="form-label small fw-bold">Select Hospital</label>
                 <select id="hospitalName" class="form-select">
                     <option value="Dhaka Medical College & Hospital">Dhaka Medical College & Hospital</option>
-                <option value="BSMMU">Bangabandhu Sheikh Mujib Medical University (BSMMU)</option>
-                <option value="Mitford">Sir Salimullah Medical College & Mitford Hospital</option>
-                <option value="Suhrawardy">Shaheed Suhrawardy Medical College & Hospital</option>
-                <option value="Chattogram MC">Chattogram Medical College Hospital</option>
-                <option value="Rajshahi MC">Rajshahi Medical College Hospital</option>
-                <option value="Mymensingh MC">Mymensingh Medical College Hospital</option>
-                <option value="Sylhet MAG Osmani">Sylhet MAG Osmani Medical College Hospital</option>
-                <option value="Sher-e-Bangla MC">Sher-e-Bangla Medical College Hospital (Barishal)</option>
-                <option value="Rangpur MC">Rangpur Medical College Hospital</option>
-                <option value="Evercare">Evercare Hospital Dhaka</option>
-                <option value="Square">Square Hospital</option>
-                <option value="United">United Hospital Limited</option>
-                <option value="Labaid">Labaid Specialized Hospital</option>
-                <option value="BIRDEM">BIRDEM General Hospital</option>
-                <option value="Ibn Sina">Ibn Sina Specialized Hospital</option>
-                <option value="Bangladesh MC">Bangladesh Medical College & Hospital</option>
-                <option value="Holy Family">Holy Family Red Crescent Medical College & Hospital</option>
-                <option value="Enam MC">Enam Medical College & Hospital</option>
-                <option value="Anwer Khan Modern">Anwer Khan Modern Medical College Hospital</option>
-                <option value="CHRF">CHRF</option>
-                <option value="icddr,b">icddr,b</option>
+                    <option value="BSMMU">Bangabandhu Sheikh Mujib Medical University (BSMMU)</option>
+                    <option value="Mitford">Sir Salimullah Medical College & Mitford Hospital</option>
+                    <option value="Suhrawardy">Shaheed Suhrawardy Medical College & Hospital</option>
+                    <option value="Chattogram MC">Chattogram Medical College Hospital</option>
+                    <option value="Rajshahi MC">Rajshahi Medical College Hospital</option>
+                    <option value="Mymensingh MC">Mymensingh Medical College Hospital</option>
+                    <option value="Sylhet MAG Osmani">Sylhet MAG Osmani Medical College Hospital</option>
+                    <option value="Sher-e-Bangla MC">Sher-e-Bangla Medical College Hospital (Barishal)</option>
+                    <option value="Rangpur MC">Rangpur Medical College Hospital</option>
+                    <option value="Evercare">Evercare Hospital Dhaka</option>
+                    <option value="Square">Square Hospital</option>
+                    <option value="United">United Hospital Limited</option>
+                    <option value="Labaid">Labaid Specialized Hospital</option>
+                    <option value="BIRDEM">BIRDEM General Hospital</option>
+                    <option value="Ibn Sina">Ibn Sina Specialized Hospital</option>
+                    <option value="Bangladesh MC">Bangladesh Medical College & Hospital</option>
+                    <option value="Holy Family">Holy Family Red Crescent Medical College & Hospital</option>
+                    <option value="Enam MC">Enam Medical College & Hospital</option>
+                    <option value="Anwer Khan Modern">Anwer Khan Modern Medical College Hospital</option>
+                    <option value="CHRF">CHRF</option>
+                    <option value="icddr,b">icddr,b</option>
                 </select>
             </div>
             <div class="mb-3">
@@ -50,21 +50,21 @@
                 <input type="text" id="staffName" class="form-control" placeholder="Enter your name">
             </div>
             <div class="mb-3">
-            <label class="form-label">Ward/Department</label>
-            <select id="ward" class="form-select form-select-lg">
-                <option value="" selected disabled>Select Ward</option>
-                <option value="ICU">ICU</option>
-                <option value="Emergency">Emergency</option>
-                <option value="Radiology">Radiology</option>
-                <option value="General Ward">General Ward</option>
-                <option value="Operating Theater">Operating Theater</option>
-                <option value="Nephrology">Nephrology</option>
-                <option value="Oncology">Oncology</option>
-                <option value="Cardiology">Cardiology</option>
-                <option value="Pediatrics">Pediatrics</option>
-                <option value="Outpatient">Outpatient (OPD)</option>
-            </select>
-        </div>
+                <label class="form-label small fw-bold">Ward/Department</label>
+                <select id="ward" class="form-select">
+                    <option value="" selected disabled>Select Ward</option>
+                    <option value="ICU">ICU</option>
+                    <option value="Emergency">Emergency</option>
+                    <option value="Radiology">Radiology</option>
+                    <option value="General Ward">General Ward</option>
+                    <option value="Operating Theater">Operating Theater</option>
+                    <option value="Nephrology">Nephrology</option>
+                    <option value="Oncology">Oncology</option>
+                    <option value="Cardiology">Cardiology</option>
+                    <option value="Pediatrics">Pediatrics</option>
+                    <option value="Outpatient">Outpatient (OPD)</option>
+                </select>
+            </div>
             <button class="btn btn-primary w-100 py-3 fw-bold" onclick="startScanner()">START AI SCANNER</button>
         </div>
 
@@ -78,7 +78,6 @@
         <div id="step-3" class="card p-4 scanner-card d-none">
             <h5 class="fw-bold mb-4">Calculate Circular Reward</h5>
             <div class="mb-3">
-                <div class="mb-3">
                 <label class="form-label small fw-bold">Recyclable Category</label>
                 <select id="finalItem" class="form-select" onchange="calculate()">
                     <option value="Saline Bag">Saline Bag (Plastic)</option>
@@ -86,7 +85,6 @@
                     <option value="Plastic Bottle">Plastic Bottle</option>
                     <option value="Paper & Cardboard">Paper & Cardboard</option>
                 </select>
-                
             </div>
             <div class="mb-3">
                 <label class="form-label small fw-bold">Quantity (Units/Kg)</label>
@@ -112,7 +110,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
 
     <script>
-        // Firebase Config
         const firebaseConfig = {
             apiKey: "AIzaSyDL0488_Y22MMpiaz0xKAEweLdaOacrA1o",
             authDomain: "medical-waste-circular-economy.firebaseapp.com",
@@ -127,122 +124,93 @@
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-       // ... (Keep Firebase Config as it is) ...
+        const MODEL_A_URL = "https://teachablemachine.withgoogle.com/models/RghMeODeQ/";
+        const MODEL_B_URL = "https://teachablemachine.withgoogle.com/models/hUQ-SIjKT/";
 
-    const MODEL_A_URL = "https://teachablemachine.withgoogle.com/models/RghMeODeQ/";
-    const MODEL_B_URL = "https://teachablemachine.withgoogle.com/models/hUQ-SIjKT/";
+        let modelA, modelB, webcam, labelContainer, maxPredictionsA, maxPredictionsB;
+        let currentBestMatch = ""; 
+        let isPreviewing = true; 
+        let modelsLoaded = false;
 
-    let modelA, modelB, webcam, labelContainer, maxPredictionsA, maxPredictionsB;
-    let currentBestMatch = ""; 
-    let isPreviewing = true; 
-    let modelsLoaded = false; // Track if AI is ready
+        // FIXED: Re-added the Price List
+        const wasteRates = {
+            "saline bag": { market: 5.50, rewardPct: 0.20 },
+            "iv tube": { market: 3.00, rewardPct: 0.15 },
+            "plastic bottle": { market: 2.50, rewardPct: 0.10 },
+            "paper & cardboard": { market: 3.50, rewardPct: 0.12 }
+        };
 
-    // NEW: Start loading models immediately in the background
-    async function preloadModels() {
-        console.log("Preloading AI models...");
-        try {
-            // Load both models in parallel (twice as fast!)
-            const [loadedA, loadedB] = await Promise.all([
-                tmImage.load(MODEL_A_URL + "model.json", MODEL_A_URL + "metadata.json"),
-                tmImage.load(MODEL_B_URL + "model.json", MODEL_B_URL + "metadata.json")
-            ]);
-            
-            modelA = loadedA;
-            modelB = loadedB;
-            maxPredictionsA = modelA.getTotalClasses();
-            maxPredictionsB = modelB.getTotalClasses();
-            modelsLoaded = true;
-            console.log("AI Models Ready.");
-        } catch (e) {
-            console.error("Model loading failed:", e);
+        async function preloadModels() {
+            try {
+                const [loadedA, loadedB] = await Promise.all([
+                    tmImage.load(MODEL_A_URL + "model.json", MODEL_A_URL + "metadata.json"),
+                    tmImage.load(MODEL_B_URL + "model.json", MODEL_B_URL + "metadata.json")
+                ]);
+                modelA = loadedA; modelB = loadedB;
+                maxPredictionsA = modelA.getTotalClasses();
+                maxPredictionsB = modelB.getTotalClasses();
+                modelsLoaded = true;
+            } catch (e) { console.error("Load failed", e); }
         }
-    }
+        preloadModels();
 
-    // Call preload immediately
-    preloadModels();
+        async function startScanner() {
+            if(!document.getElementById('staffName').value || !document.getElementById('ward').value) {
+                alert("Please fill in your name and select a ward."); return;
+            }
+            document.getElementById('step-1').classList.add('d-none');
+            document.getElementById('step-2').classList.remove('d-none');
+            labelContainer = document.getElementById("label-container");
 
-    async function startScanner() {
-        if(!document.getElementById('staffName').value || !document.getElementById('ward').value) {
-            alert("Identification required."); return;
+            webcam = new tmImage.Webcam(400, 400, false); 
+            await webcam.setup({ facingMode: "environment" }); 
+            await webcam.play();
+            document.getElementById("webcam-container").appendChild(webcam.canvas);
+
+            if (!modelsLoaded) labelContainer.innerHTML = "Finalizing AI Models...";
+            while (!modelsLoaded) { await new Promise(r => setTimeout(r, 500)); }
+            resetCapture();
         }
-
-        // Switch screens immediately
-        document.getElementById('step-1').classList.add('d-none');
-        document.getElementById('step-2').classList.remove('d-none');
-        labelContainer = document.getElementById("label-container");
-
-        // If models aren't finished yet, show the spinner
-        if (!modelsLoaded) {
-            labelContainer.innerHTML = `<div class="spinner-border text-primary" role="status"></div><br>Finalizing AI Models...`;
-        }
-
-        // Initialize Webcam in parallel with the final model setup
-        webcam = new tmImage.Webcam(400, 400, false); 
-        await webcam.setup({ facingMode: "environment" }); 
-        await webcam.play();
-        document.getElementById("webcam-container").appendChild(webcam.canvas);
-
-        // Wait for models if they haven't finished preloading
-        while (!modelsLoaded) {
-            await new Promise(resolve => setTimeout(resolve, 500));
-        }
-
-        resetCapture();
-    }
 
         async function previewLoop() {
-            if(isPreviewing) {
-                webcam.update();
-                window.requestAnimationFrame(previewLoop);
-            }
+            if(isPreviewing) { webcam.update(); window.requestAnimationFrame(previewLoop); }
         }
 
         async function captureAndPredict() {
             isPreviewing = false;
-            labelContainer.innerHTML = `<div class="spinner-border text-primary" role="status"></div><br>Analyzing...`;
-
+            labelContainer.innerHTML = "Analyzing...";
             const predictionA = await modelA.predict(webcam.canvas);
-            let topClassA = ""; let topProbA = 0;
+            let topA = ""; let probA = 0;
             for (let i = 0; i < maxPredictionsA; i++) {
-                if(predictionA[i].probability > topProbA) {
-                    topProbA = predictionA[i].probability; topClassA = predictionA[i].className;
-                }
+                if(predictionA[i].probability > probA) { probA = predictionA[i].probability; topA = predictionA[i].className; }
             }
 
-            if (topClassA === "Hazardous" && topProbA > 0.85) {
+            if (topA === "Hazardous" && probA > 0.85) {
                 labelContainer.innerHTML = `
                     <div class="p-3 bg-danger text-white rounded mb-2">⚠️ HAZARDOUS DETECTED</div>
                     <button class="btn btn-outline-secondary w-100 mb-2" onclick="resetCapture()">Try Again</button>
-                    <button class="btn btn-sm btn-link text-primary" onclick="forceRecyclable()">If Recyclable tap here</button>
-                `;
-            } else {
-                runDetailer();
-            }
+                    <button class="btn btn-sm btn-link" onclick="forceRecyclable()">If Recyclable tap here</button>`;
+            } else { runDetailer(); }
         }
 
         async function runDetailer() {
-            labelContainer.innerHTML = `<div class="spinner-border text-success" role="status"></div><br>Identifying Material...`;
+            labelContainer.innerHTML = "Identifying...";
             const predictionB = await modelB.predict(webcam.canvas);
-            let topClassB = ""; let topProbB = 0;
+            let topB = ""; let probB = 0;
             for (let j = 0; j < maxPredictionsB; j++) {
-                if(predictionB[j].probability > topProbB) {
-                    topProbB = predictionB[j].probability; topClassB = predictionB[j].className;
-                }
+                if(predictionB[j].probability > probB) { probB = predictionB[j].probability; topB = predictionB[j].className; }
             }
-            currentBestMatch = topClassB;
-            labelContainer.innerHTML = `
-                <div class="p-3 bg-success text-white rounded mb-2">✅ ${topClassB} Detected</div>
-                <button class="btn btn-outline-primary w-100" onclick="resetCapture()">Retake Photo</button>
-            `;
+            currentBestMatch = topB;
+            labelContainer.innerHTML = `<div class="p-3 bg-success text-white rounded mb-2">✅ ${topB} Detected</div>
+                <button class="btn btn-outline-primary w-100" onclick="resetCapture()">Retake Photo</button>`;
             document.getElementById('nextBtn').classList.remove('d-none');
         }
 
         function forceRecyclable() { runDetailer(); }
-
         function resetCapture() {
             isPreviewing = true;
             document.getElementById('nextBtn').classList.add('d-none');
-            labelContainer.innerHTML = `<button class="btn btn-warning w-100 fw-bold py-3 shadow-sm" onclick="captureAndPredict()">📸 TAKE PICTURE</button>`;
+            labelContainer.innerHTML = `<button class="btn btn-warning w-100 fw-bold py-3" onclick="captureAndPredict()">📸 TAKE PICTURE</button>`;
             window.requestAnimationFrame(previewLoop);
         }
 
@@ -250,15 +218,25 @@
             webcam.stop();
             document.getElementById('step-2').classList.add('d-none');
             document.getElementById('step-3').classList.remove('d-none');
-            document.getElementById('finalItem').value = currentBestMatch;
+            // Select the item in the dropdown that matches the AI result
+            const select = document.getElementById('finalItem');
+            for(let i=0; i<select.options.length; i++) {
+                if(select.options[i].value.toLowerCase().includes(currentBestMatch.toLowerCase())) {
+                    select.selectedIndex = i; break;
+                }
+            }
             calculate();
         }
 
         function calculate() {
-            const item = document.getElementById('finalItem').value;
+            // FIXED: Clean the text to ensure it matches the keys in wasteRates
+            const itemValue = document.getElementById('finalItem').value;
+            let lookupKey = itemValue.toLowerCase().split(' (')[0]; // gets "saline bag" from "Saline Bag (Plastic)"
+            
             const qty = parseInt(document.getElementById('quantity').value) || 0;
-            const rates = wasteRates[item] || { market: 1.0, rewardPct: 0.1 };
+            const rates = wasteRates[lookupKey] || { market: 2.0, rewardPct: 0.15 };
             const rev = qty * rates.market;
+            
             document.getElementById('valRevenue').innerText = rev.toFixed(2);
             document.getElementById('valReward').innerText = (rev * rates.rewardPct).toFixed(2);
         }
@@ -279,9 +257,7 @@
                 status: "Verified"
             };
 
-            db.ref('wasteLedger').push(logEntry).then(() => {
-                showSuccessPopup(staff, item, reward);
-            });
+            db.ref('wasteLedger').push(logEntry).then(() => { showSuccessPopup(staff, item, reward); });
         }
 
         function showSuccessPopup(staff, item, reward) {
@@ -291,14 +267,12 @@
                 <div class="card p-4 text-center shadow-lg" style="max-width:400px; border-radius:20px; background:white;">
                     <span style="font-size: 50px;">🎉</span>
                     <h3 class="text-success fw-bold">Logged to Cloud!</h3>
-                    <p class="text-muted">Great job, <strong>${staff}</strong>! Reward earned for ${item}.</p>
+                    <p class="text-muted">Reward earned for ${item}.</p>
                     <div class="p-3 mb-3" style="background:#e8f5e9; border-radius:15px;">
-                        <small class="text-uppercase fw-bold text-muted">Your Profit</small>
                         <h2 class="text-success mb-0">৳ ${reward}</h2>
                     </div>
                     <button class="btn btn-primary btn-lg w-100" onclick="location.reload()">Scan Next Item</button>
-                </div>
-            `;
+                </div>`;
             document.body.appendChild(overlay);
         }
     </script>
