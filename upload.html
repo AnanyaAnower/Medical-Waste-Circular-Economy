@@ -24,6 +24,7 @@
 
     <div id="step-1" class="card p-4 scanner-card mb-4">
         <h5 class="mb-3 border-bottom pb-2">Staff Identification</h5>
+        
         <div class="mb-3">
             <label class="form-label fw-bold">Institution Name</label>
             <select id="hospitalName" class="form-select form-select-lg">
@@ -52,6 +53,31 @@
                 <option value="icddr,b">icddr,b</option>
             </select>
         </div>
+
+        <div class="mb-3">
+            <label class="form-label fw-bold">Staff Name</label>
+            <input type="text" id="staffName" class="form-control form-control-lg" placeholder="Full Name">
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label fw-bold">Assigned Ward</label>
+            <select id="ward" class="form-select form-select-lg">
+                <option value="" selected disabled>Select Ward</option>
+                <option value="ICU">ICU</option>
+                <option value="Emergency">Emergency</option>
+                <option value="Radiology">Radiology</option>
+                <option value="General Ward">General Ward</option>
+                <option value="Operating Theater">Operating Theater</option>
+                <option value="Nephrology">Nephrology</option>
+                <option value="Oncology">Oncology</option>
+                <option value="Cardiology">Cardiology</option>
+                <option value="Pediatrics">Pediatrics</option>
+                <option value="Outpatient">Outpatient (OPD)</option>
+            </select>
+        </div>
+
+        <button class="btn btn-primary btn-lg w-100 shadow-sm" onclick="startScanner()">Open AI Scanner</button>
+    </div>
         <div class="mb-3">
             <label class="form-label fw-bold">Staff Name</label>
             <input type="text" id="staffName" class="form-control form-control-lg" placeholder="Enter Full Name">
