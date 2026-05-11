@@ -144,9 +144,17 @@
     };
 
     async function startScanner() {
-        if(!document.getElementById('hospitalName').value || !document.getElementById('staffName').value) {
-            alert("Identification required."); return;
+        const hospital = document.getElementById('hospitalName').value;
+        const name = document.getElementById('staffName').value;
+        const ward = document.getElementById('ward').value;
+
+        if(!hospital || !name || !ward) {
+            alert("Please complete all identification fields (Hospital, Name, and Ward) before starting.");
+            return;
         }
+        
+        // ... rest of the code to load models and start webcam
+    }
         document.getElementById('step-1').classList.add('d-none');
         document.getElementById('step-2').classList.remove('d-none');
         
