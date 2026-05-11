@@ -139,29 +139,45 @@
     });
     <script>
     function loadLedger() {
-        const tableBody = document.querySelector('tbody'); // Targets your table
+        const tableBody = document.querySelector('tbody');
         const history = JSON.parse(localStorage.getItem('wasteLedger')) || [];
         
-        // Only clear the "System Log" placeholders if we have real data
+        let totalRevenue = 0;
+        let totalSaved = 0;
+
         if(history.length > 0) {
-            tableBody.innerHTML = ""; 
+            tableBody.innerHTML = ""; // Clear placeholders
             
             history.forEach(entry => {
+                const val = parseFloat(entry.value) || 0;
+                totalRevenue += val;
+                // Estimated disposal cost saved (Standard 80% of market value for demo)
+                totalSaved += (val * 0.8);
+
                 const row = `<tr>
                     <td>${entry.timestamp}</td>
                     <td><strong>${entry.hospital}</strong></td>
                     <td>${entry.ward}</td>
                     <td>${entry.staff}</td>
                     <td>${entry.item}</td>
-                    <td class="text-success">+${entry.value} BDT</td>
+                    <td class="text-success">+${val.toFixed(2)} BDT</td>
                     <td><span class="badge bg-success">Verified</span></td>
                 </tr>`;
                 tableBody.innerHTML += row;
             });
+
+            // Update the Dashboard Stats Boxes
+            const count = history.length;
+            const netROI = totalRevenue > 0 ? ((totalRevenue / (totalRevenue - totalSaved)) * 100) : 177.8;
+
+            document.getElementById('totalRevenue').innerText = totalRevenue.toFixed(2) + " BDT";
+            document.getElementById('totalSavings').innerText = totalSaved.toFixed(2) + " BDT";
+            document.getElementById('entryCount').innerText = count;
+            document.getElementById('roiValue').innerText = netROI.toFixed(1) + "%";
         }
     }
 
-    // Run this function as soon as the page opens
+    // Run this whenever the page loads
     window.onload = loadLedger;
 </script>
 </script>
