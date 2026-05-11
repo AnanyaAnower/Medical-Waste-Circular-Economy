@@ -67,7 +67,7 @@
                     </thead>
                     <tbody id="ledgerBody">
                         <tr>
-                            <td colspan="7" class="text-center text-muted">No entries found. Start scanning items to see data!</td>
+                            <td colspan="7" class="text-center text-muted">Connecting to cloud database...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -75,52 +75,76 @@
         </div>
     </div>
 
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
     <script>
-        function loadLedger() {
-            // Target the table body
+        // 1. Firebase Project Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDL0488_Y22MMpiaz0xKAEweLdaOacrA1o",
+  authDomain: "medical-waste-circular-economy.firebaseapp.com",
+  databaseURL: "https://medical-waste-circular-economy-default-rtdb.firebaseio.com",
+  projectId: "medical-waste-circular-economy",
+  storageBucket: "medical-waste-circular-economy.firebasestorage.app",
+  messagingSenderId: "180545712948",
+  appId: "1:180545712948:web:3e93c730afcf6306c7eb61",
+  measurementId: "G-G49S8FGXDV"
+        };
+
+        // Initialize Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.database();
+
+        function listenToLedger() {
             const tableBody = document.getElementById('ledgerBody');
             
-            // Retrieve data from LocalStorage
-            const history = JSON.parse(localStorage.getItem('wasteLedger')) || [];
-            
-            let totalRevenue = 0;
-            let totalSaved = 0;
-
-            if (history && history.length > 0) {
-                // Clear the "No entries found" text
-                tableBody.innerHTML = ""; 
+            // 2. REAL-TIME LISTENER: Pulls from the 'wasteLedger' path in your database
+            db.ref('wasteLedger').on('value', (snapshot) => {
+                let totalRevenue = 0;
+                let totalSaved = 0;
+                let count = 0;
                 
-                history.forEach(entry => {
-                    const val = parseFloat(entry.value) || 0;
-                    totalRevenue += val;
-                    totalSaved += (val * 0.8); // 80% estimated savings on disposal logistics
+                if (snapshot.exists()) {
+                    tableBody.innerHTML = ""; 
+                    
+                    const data = snapshot.val();
+                    // Array conversion and reversal to show newest entries at top
+                    const history = Object.values(data).reverse();
 
-                    const row = `<tr>
-                        <td>${entry.timestamp}</td>
-                        <td><strong>${entry.hospital}</strong></td>
-                        <td>${entry.ward}</td>
-                        <td>${entry.staff}</td>
-                        <td>${entry.item}</td>
-                        <td class="text-success">+${val.toFixed(2)} BDT</td>
-                        <td><span class="badge bg-success">Verified</span></td>
-                    </tr>`;
-                    tableBody.innerHTML += row;
-                });
+                    history.forEach(entry => {
+                        const val = parseFloat(entry.value) || 0;
+                        totalRevenue += val;
+                        totalSaved += (val * 0.8);
+                        count++;
 
-                // Update Dashboard Metrics
-                const netROI = totalRevenue > 0 ? ((totalRevenue / (totalRevenue * 0.6)) * 100) : 0;
+                        const row = `<tr>
+                            <td>${entry.timestamp}</td>
+                            <td><strong>${entry.hospital}</strong></td>
+                            <td>${entry.ward}</td>
+                            <td>${entry.staff}</td>
+                            <td>${entry.item}</td>
+                            <td class="text-success">+${val.toFixed(2)} BDT</td>
+                            <td><span class="badge bg-success">Verified</span></td>
+                        </tr>`;
+                        tableBody.innerHTML += row;
+                    });
 
-                document.getElementById('totalRevenue').innerText = totalRevenue.toFixed(2) + " BDT";
-                document.getElementById('totalSavings').innerText = totalSaved.toFixed(2) + " BDT";
-                document.getElementById('entryCount').innerText = history.length;
-                document.getElementById('roiValue').innerText = netROI.toFixed(1) + "%";
-            }
+                    // Dynamic ROI Update
+                    const netROI = totalRevenue > 0 ? ((totalRevenue / (totalRevenue * 0.6)) * 100) : 0;
+
+                    document.getElementById('totalRevenue').innerText = totalRevenue.toFixed(2) + " BDT";
+                    document.getElementById('totalSavings').innerText = totalSaved.toFixed(2) + " BDT";
+                    document.getElementById('entryCount').innerText = count;
+                    document.getElementById('roiValue').innerText = netROI.toFixed(1) + "%";
+                } else {
+                    tableBody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No entries found in cloud database.</td></tr>';
+                }
+            });
         }
 
-        // Run when page loads
-        document.addEventListener('DOMContentLoaded', loadLedger);
-        // Run when coming back to the page (prevents stale data)
-        window.addEventListener('pageshow', loadLedger);
+        document.addEventListener('DOMContentLoaded', listenToLedger);
     </script>
 </body>
 </html>
