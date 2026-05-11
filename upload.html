@@ -158,8 +158,8 @@
         maxPredictionsA = modelA.getTotalClasses();
         maxPredictionsB = modelB.getTotalClasses();
 
-        webcam = new tmImage.Webcam(400, 400, true);
-        await webcam.setup(); await webcam.play();
+        webcam = new tmImage.Webcam(400, 400, false);
+        await webcam.setup({ facingMode: "environment" }); await webcam.play();
         window.requestAnimationFrame(loop);
         document.getElementById("webcam-container").appendChild(webcam.canvas);
         labelContainer = document.getElementById("label-container");
