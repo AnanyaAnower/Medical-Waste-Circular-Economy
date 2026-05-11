@@ -127,40 +127,68 @@
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        const MODEL_A_URL = "https://teachablemachine.withgoogle.com/models/RghMeODeQ/";
-        const MODEL_B_URL = "https://teachablemachine.withgoogle.com/models/hUQ-SIjKT/";
+       // ... (Keep Firebase Config as it is) ...
 
-        let modelA, modelB, webcam, labelContainer, maxPredictionsA, maxPredictionsB;
-        let currentBestMatch = ""; 
-        let isPreviewing = true; 
+    const MODEL_A_URL = "https://teachablemachine.withgoogle.com/models/RghMeODeQ/";
+    const MODEL_B_URL = "https://teachablemachine.withgoogle.com/models/hUQ-SIjKT/";
 
-        const wasteRates = {
-            "Saline Bag": { market: 5.50, rewardPct: 0.20 },
-            "IV Tube": { market: 3.00, rewardPct: 0.15 },
-            "Plastic Bottle": { market: 2.50, rewardPct: 0.10 },
-            "Paper & Cardboard": { market: 3.50, rewardPct: 0.12 }
-        };
+    let modelA, modelB, webcam, labelContainer, maxPredictionsA, maxPredictionsB;
+    let currentBestMatch = ""; 
+    let isPreviewing = true; 
+    let modelsLoaded = false; // Track if AI is ready
 
-        async function startScanner() {
-            if(!document.getElementById('staffName').value || !document.getElementById('ward').value) {
-                alert("Identification required."); return;
-            }
-            document.getElementById('step-1').classList.add('d-none');
-            document.getElementById('step-2').classList.remove('d-none');
-            labelContainer = document.getElementById("label-container");
-            labelContainer.innerHTML = "Initializing AI...";
-
-            modelA = await tmImage.load(MODEL_A_URL + "model.json", MODEL_A_URL + "metadata.json");
-            modelB = await tmImage.load(MODEL_B_URL + "model.json", MODEL_B_URL + "metadata.json");
+    // NEW: Start loading models immediately in the background
+    async function preloadModels() {
+        console.log("Preloading AI models...");
+        try {
+            // Load both models in parallel (twice as fast!)
+            const [loadedA, loadedB] = await Promise.all([
+                tmImage.load(MODEL_A_URL + "model.json", MODEL_A_URL + "metadata.json"),
+                tmImage.load(MODEL_B_URL + "model.json", MODEL_B_URL + "metadata.json")
+            ]);
+            
+            modelA = loadedA;
+            modelB = loadedB;
             maxPredictionsA = modelA.getTotalClasses();
             maxPredictionsB = modelB.getTotalClasses();
-            
-            webcam = new tmImage.Webcam(400, 400, false); 
-            await webcam.setup({ facingMode: "environment" }); 
-            await webcam.play();
-            document.getElementById("webcam-container").appendChild(webcam.canvas);
-            resetCapture();
+            modelsLoaded = true;
+            console.log("AI Models Ready.");
+        } catch (e) {
+            console.error("Model loading failed:", e);
         }
+    }
+
+    // Call preload immediately
+    preloadModels();
+
+    async function startScanner() {
+        if(!document.getElementById('staffName').value || !document.getElementById('ward').value) {
+            alert("Identification required."); return;
+        }
+
+        // Switch screens immediately
+        document.getElementById('step-1').classList.add('d-none');
+        document.getElementById('step-2').classList.remove('d-none');
+        labelContainer = document.getElementById("label-container");
+
+        // If models aren't finished yet, show the spinner
+        if (!modelsLoaded) {
+            labelContainer.innerHTML = `<div class="spinner-border text-primary" role="status"></div><br>Finalizing AI Models...`;
+        }
+
+        // Initialize Webcam in parallel with the final model setup
+        webcam = new tmImage.Webcam(400, 400, false); 
+        await webcam.setup({ facingMode: "environment" }); 
+        await webcam.play();
+        document.getElementById("webcam-container").appendChild(webcam.canvas);
+
+        // Wait for models if they haven't finished preloading
+        while (!modelsLoaded) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+        }
+
+        resetCapture();
+    }
 
         async function previewLoop() {
             if(isPreviewing) {
