@@ -6,12 +6,12 @@
     <title>Handy - AI Medical Waste Audit</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { background-color: #f4f7f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f4f7f6; font-family: 'Segoe UI', sans-serif; }
         .scanner-card { border-radius: 15px; overflow: hidden; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         #webcam-container canvas { width: 100% !important; height: auto !important; border-radius: 10px; }
         .status-badge { font-size: 1.1rem; font-weight: bold; transition: all 0.3s ease; }
         .reward-box { background: #e8f5e9; border-radius: 10px; padding: 15px; border: 1px solid #c8e6c9; }
-        .form-label { font-weight: 600; color: #444; }
+        .auto-tag { font-size: 0.8rem; background: #0d6efd; color: white; padding: 2px 8px; border-radius: 10px; margin-left: 10px; }
     </style>
 </head>
 <body class="p-3 p-md-5">
@@ -19,13 +19,13 @@
 <div class="container" style="max-width: 650px;">
     <div class="text-center mb-4">
         <h2 class="fw-bold text-primary">Handy Audit System</h2>
-        <p class="text-muted">Smart Medical Waste Segregation & Rewards</p>
+        <p class="text-muted">Hierarchical AI Waste Classification</p>
     </div>
 
     <div id="step-1" class="card p-4 scanner-card mb-4">
         <h5 class="mb-3 border-bottom pb-2">Staff Identification</h5>
         <div class="mb-3">
-            <label class="form-label">Institution Name</label>
+            <label class="form-label fw-bold">Institution Name</label>
             <select id="hospitalName" class="form-select form-select-lg">
                 <option value="" selected disabled>Select Hospital/Institution</option>
                 <option value="Dhaka Medical College & Hospital">Dhaka Medical College & Hospital</option>
@@ -53,19 +53,8 @@
             </select>
         </div>
         <div class="mb-3">
-            <label class="form-label">Staff Name</label>
-            <input type="text" id="staffName" class="form-control form-control-lg" placeholder="Full Name">
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Assigned Ward</label>
-            <select id="ward" class="form-select form-select-lg">
-                <option value="" selected disabled>Select Ward</option>
-                <option value="ICU">ICU</option>
-                <option value="Emergency">Emergency</option>
-                <option value="Radiology">Radiology</option>
-                <option value="General Ward">General Ward</option>
-                <option value="Operating Theater">Operating Theater</option>
-            </select>
+            <label class="form-label fw-bold">Staff Name</label>
+            <input type="text" id="staffName" class="form-control form-control-lg" placeholder="Enter Full Name">
         </div>
         <button class="btn btn-primary btn-lg w-100 shadow-sm" onclick="startScanner()">Open AI Scanner</button>
     </div>
@@ -73,22 +62,21 @@
     <div id="step-2" class="d-none">
         <div class="card scanner-card mb-3">
             <div id="webcam-container"></div>
-            <div id="label-container" class="status-badge text-center p-3 bg-white">Initializing AI...</div>
+            <div id="label-container" class="status-badge text-center p-3 bg-white">Initializing Models...</div>
         </div>
         <button id="nextBtn" class="btn btn-success btn-lg w-100 shadow d-none" onclick="goToReward()">Confirm & Calculate Reward →</button>
     </div>
 
     <div id="step-3" class="d-none">
         <div class="card p-4 scanner-card">
-            <h5 class="text-success mb-3 border-bottom pb-2">Reward Calculation</h5>
+            <h5 class="text-success mb-3 border-bottom pb-2">Reward Calculation <span class="auto-tag">AI Auto-Selected</span></h5>
             <div class="mb-3">
-                <label class="form-label small fw-bold">Recyclable Item Category</label>
+                <label class="form-label small fw-bold">Detected Item Category</label>
                 <select id="finalItem" class="form-select" onchange="calculate()">
                     <option value="Saline Bag">Saline Bag (Plastic)</option>
                     <option value="IV Tube">IV Tube (Plastic)</option>
                     <option value="Plastic Bottle">Plastic Bottle</option>
-                    <option value="Paper">Paper (Leaflets/Notes)</option>
-                    <option value="Cardboard">Cardboard (Boxes)</option>
+                    <option value="Paper & Cardboard">Paper & Cardboard</option>
                 </select>
             </div>
             <div class="mb-3">
@@ -116,28 +104,31 @@
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
 <script>
-    // UPDATED LINK: https://teachablemachine.withgoogle.com/models/RghMeODeQ/
-    const MODEL_URL = "https://teachablemachine.withgoogle.com/models/RghMeODeQ/";
+    const MODEL_A_URL = "https://teachablemachine.withgoogle.com/models/RghMeODeQ/";
+    const MODEL_B_URL = "https://teachablemachine.withgoogle.com/models/hUQ-SIjKT/";
 
-    let model, webcam, labelContainer, maxPredictions;
+    let modelA, modelB, webcam, labelContainer, maxPredictionsA, maxPredictionsB;
+    let currentBestMatch = "Saline Bag"; // Default fallback
 
     const wasteRates = {
         "Saline Bag": { market: 5.50, rewardPct: 0.20 },
         "IV Tube": { market: 3.00, rewardPct: 0.15 },
         "Plastic Bottle": { market: 2.50, rewardPct: 0.10 },
-        "Paper": { market: 2.00, rewardPct: 0.10 },
-        "Cardboard": { market: 4.00, rewardPct: 0.15 }
+        "Paper & Cardboard": { market: 3.00, rewardPct: 0.12 }
     };
 
     async function startScanner() {
         if(!document.getElementById('hospitalName').value || !document.getElementById('staffName').value) {
-            alert("Please fill all fields."); return;
+            alert("Identification required."); return;
         }
         document.getElementById('step-1').classList.add('d-none');
         document.getElementById('step-2').classList.remove('d-none');
         
-        model = await tmImage.load(MODEL_URL + "model.json", MODEL_URL + "metadata.json");
-        maxPredictions = model.getTotalClasses();
+        // Load both models
+        modelA = await tmImage.load(MODEL_A_URL + "model.json", MODEL_A_URL + "metadata.json");
+        modelB = await tmImage.load(MODEL_B_URL + "model.json", MODEL_B_URL + "metadata.json");
+        maxPredictionsA = modelA.getTotalClasses();
+        maxPredictionsB = modelB.getTotalClasses();
         
         webcam = new tmImage.Webcam(400, 400, true);
         await webcam.setup(); await webcam.play();
@@ -149,26 +140,36 @@
     async function loop() { webcam.update(); await predict(); window.requestAnimationFrame(loop); }
 
     async function predict() {
-        const prediction = await model.predict(webcam.canvas);
-        let topClass = ""; let topProb = 0;
-        for (let i = 0; i < maxPredictions; i++) {
-            if(prediction[i].probability > topProb) {
-                topProb = prediction[i].probability; topClass = prediction[i].className;
+        const predictionA = await modelA.predict(webcam.canvas);
+        let topClassA = ""; let topProbA = 0;
+
+        for (let i = 0; i < maxPredictionsA; i++) {
+            if(predictionA[i].probability > topProbA) {
+                topProbA = predictionA[i].probability; topClassA = predictionA[i].className;
             }
         }
+
         const btn = document.getElementById('nextBtn');
         
-        // Changed "Recyclable Plastic" to "Recyclable" to match your new model
-        if (topClass === "Hazardous") {
+        if (topClassA === "Hazardous") {
             labelContainer.innerHTML = "⚠️ HAZARDOUS - STOP";
             labelContainer.className = "status-badge text-center p-3 bg-danger text-white";
             btn.classList.add('d-none');
-        } else if (topClass === "Recyclable") {
-            labelContainer.innerHTML = "✅ RECYCLABLE DETECTED";
+        } else if (topClassA === "Recyclable") {
+            // Trigger Model B if Model A is sure it's Recyclable
+            const predictionB = await modelB.predict(webcam.canvas);
+            let topClassB = ""; let topProbB = 0;
+            for (let j = 0; j < maxPredictionsB; j++) {
+                if(predictionB[j].probability > topProbB) {
+                    topProbB = predictionB[j].probability; topClassB = predictionB[j].className;
+                }
+            }
+            currentBestMatch = topClassB; // This updates live!
+            labelContainer.innerHTML = `✅ RECYCLABLE: ${topClassB.toUpperCase()}`;
             labelContainer.className = "status-badge text-center p-3 bg-success text-white";
             btn.classList.remove('d-none');
         } else {
-            labelContainer.innerHTML = "Scanning...";
+            labelContainer.innerHTML = "Scanning Material...";
             labelContainer.className = "status-badge text-center p-3 bg-secondary text-white";
             btn.classList.add('d-none');
         }
@@ -178,6 +179,8 @@
         webcam.stop();
         document.getElementById('step-2').classList.add('d-none');
         document.getElementById('step-3').classList.remove('d-none');
+        // Auto-select the dropdown based on Model B
+        document.getElementById('finalItem').value = currentBestMatch;
         calculate();
     }
 
@@ -190,9 +193,7 @@
         document.getElementById('valReward').innerText = (rev * rates.rewardPct).toFixed(2);
     }
 
-    function submitLog() {
-        alert("Logged to Ledger Successfully!"); location.reload();
-    }
+    function submitLog() { alert("Data recorded in ledger!"); location.reload(); }
 </script>
 </body>
 </html>
