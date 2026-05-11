@@ -137,7 +137,33 @@
         document.getElementById('entryCount').innerText = count;
         document.getElementById('roiValue').innerText = netROI.toFixed(1) + "%";
     });
-</script>
+    <script>
+    function loadLedger() {
+        const tableBody = document.querySelector('tbody'); // Targets your table
+        const history = JSON.parse(localStorage.getItem('wasteLedger')) || [];
+        
+        // Only clear the "System Log" placeholders if we have real data
+        if(history.length > 0) {
+            tableBody.innerHTML = ""; 
+            
+            history.forEach(entry => {
+                const row = `<tr>
+                    <td>${entry.timestamp}</td>
+                    <td><strong>${entry.hospital}</strong></td>
+                    <td>${entry.ward}</td>
+                    <td>${entry.staff}</td>
+                    <td>${entry.item}</td>
+                    <td class="text-success">+${entry.value} BDT</td>
+                    <td><span class="badge bg-success">Verified</span></td>
+                </tr>`;
+                tableBody.innerHTML += row;
+            });
+        }
+    }
 
+    // Run this function as soon as the page opens
+    window.onload = loadLedger;
+</script>
+</script>
 </body>
 </html>
